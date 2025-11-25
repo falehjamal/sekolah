@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tenants', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('db_host')->default('127.0.0.1');
-            $table->unsignedInteger('port')->default(3306);
-            $table->string('db_name');
-            $table->string('db_user');
-            $table->string('db_pass');
-            $table->boolean('status')->default(true); // true = aktif, false = non-aktif
-            $table->timestamps();
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->string('name')->after('id');
+            $table->boolean('status')->default(true)->after('name');
+            $table->string('tenancy_db_host')->default('127.0.0.1')->after('status');
+            $table->unsignedSmallInteger('tenancy_db_port')->default(3306)->after('tenancy_db_host');
+            $table->string('tenancy_db_name')->after('tenancy_db_port');
+            $table->string('tenancy_db_username')->after('tenancy_db_name');
+            $table->string('tenancy_db_password')->after('tenancy_db_username');
         });
     }
 
@@ -29,6 +27,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tenants');
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->dropColumn([
+                'name',
+                'status',
+                'tenancy_db_host',
+                'tenancy_db_port',
+                'tenancy_db_name',
+                'tenancy_db_username',
+                'tenancy_db_password',
+            ]);
+        });
     }
 };

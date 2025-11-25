@@ -10,16 +10,15 @@ class CreateTenantsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
+        if (Schema::hasTable('tenants')) {
+            return;
+        }
+
         Schema::create('tenants', function (Blueprint $table) {
             $table->string('id')->primary();
-
-            // your custom columns may go here
-
             $table->timestamps();
             $table->json('data')->nullable();
         });
@@ -27,8 +26,6 @@ class CreateTenantsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {

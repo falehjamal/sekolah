@@ -4,6 +4,8 @@ use Illuminate\Support\Str;
 
 return [
 
+    'central_connection' => env('DB_CONNECTION', 'sekolah_gateway'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Database Connection Name
@@ -16,7 +18,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'sekolah_gateway'),
 
     /*
     |--------------------------------------------------------------------------
@@ -54,6 +56,26 @@ return [
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'sekolah_tenant' => [
+            'driver' => 'mysql',
+            'url' => env('TENANT_DB_URL'),
+            'host' => env('TENANT_DB_HOST', '127.0.0.1'),
+            'port' => env('TENANT_DB_PORT', '3306'),
+            'database' => env('TENANT_DB_DATABASE', 'tenant'),
+            'username' => env('TENANT_DB_USERNAME', 'root'),
+            'password' => env('TENANT_DB_PASSWORD', ''),
+            'unix_socket' => env('TENANT_DB_SOCKET', ''),
+            'charset' => env('TENANT_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('TENANT_DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
