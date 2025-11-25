@@ -56,7 +56,7 @@
                             </a>
                         </div>
                         <h4 class="mb-2 text-center">Silakan masuk 👋</h4>
-                        <p class="mb-4 text-center">Gunakan ID Sekolah dan kredensial tenant Anda.</p>
+                        <p class="mb-4 text-center">Gunakan ID Sekolah dan kredensial Anda.</p>
 
                         @if($errors->any())
                             <div class="alert alert-danger">
@@ -68,14 +68,14 @@
                             @csrf
                             <div class="mb-3">
                                 <label for="idsekolah" class="form-label">ID Sekolah</label>
-                                <input type="text" class="form-control @error('idsekolah') is-invalid @enderror" id="idsekolah" name="idsekolah" value="{{ old('idsekolah') }}" placeholder="Contoh: SMA001" autofocus required>
+                                <input type="text" class="form-control @error('idsekolah') is-invalid @enderror" id="idsekolah" name="idsekolah" value="{{ old('idsekolah') }}" placeholder="Contoh: 3121" autofocus required>
                                 @error('idsekolah')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
                                 <label for="user" class="form-label">User</label>
-                                <input type="text" class="form-control @error('user') is-invalid @enderror" id="user" name="user" value="{{ old('user') }}" placeholder="Nama pengguna tenant" autocomplete="username" required>
+                                <input type="text" class="form-control @error('user') is-invalid @enderror" id="user" name="user" value="{{ old('user') }}" placeholder="Username" autocomplete="username" required>
                                 @error('user')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -103,7 +103,7 @@
                             </div>
                         </form>
                         <p class="text-center mb-0">
-                            Hubungi admin pusat jika lupa kredensial akun tenant.
+                            Hubungi admin sekolah jika lupa kredensial akun tenant.
                         </p>
                     </div>
                 </div>
