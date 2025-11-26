@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Level extends Model
 {
@@ -25,4 +26,9 @@ class Level extends Model
     protected $casts = [
         'is_default' => 'boolean',
     ];
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(UserAccount::class, 'level_id');
+    }
 }
