@@ -7,10 +7,13 @@ use App\Http\Requests\Auth\UpdateLevelUserRequest;
 use App\Models\Tenant\Level;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
+use App\Support\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 
 class LevelUserController extends Controller
 {
@@ -102,16 +105,24 @@ class LevelUserController extends Controller
         return redirect()->route('auth.levels.index')->with('status', 'Level user berhasil dihapus.');
     }
 
-    protected function permissionGroups()
+    protected function permissionGroups(): Collection
     {
-        return Permission::query()
-            ->orderBy('name')
-            ->get()
-            ->groupBy(function (Permission $permission) {
-                $prefix = Str::of($permission->name)->before('.');
+        $tenantKey = TenantContext::id() ?? session('tenant_id') ?? 'central';
 
-                return Str::headline($prefix->isNotEmpty() ? $prefix->__toString() : $permission->name);
-            });
+        return Cache::remember(
+            sprintf('tenant:%s:permission-groups', $tenantKey),
+            now()->addHours(12),
+            function () {
+                return Permission::query()
+                    ->orderBy('name')
+                    ->get()
+                    ->groupBy(function (Permission $permission) {
+                        $prefix = Str::of($permission->name)->before('.');
+
+                        return Str::headline($prefix->isNotEmpty() ? $prefix->__toString() : $permission->name);
+                    });
+            }
+        );
     }
 
     protected function persistLevel(Level $level, array $data): Level

@@ -67,114 +67,33 @@
   <div class="menu-inner-shadow"></div>
 
   <ul class="menu-inner py-1">
-    @php($isDashboard = request()->routeIs('dashboard'))
-    <li class="menu-item {{ $isDashboard ? 'active open' : '' }}">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-home-circle"></i>
-        <div>Dashboard</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item {{ $isDashboard ? 'active' : '' }}">
-          <a href="{{ route('dashboard') }}" class="menu-link">
-            <div>Dashboard</div>
-          </a>
+    @if (isset($menuTree) && $menuTree->isNotEmpty())
+      @foreach ($menuTree as $parent)
+        {{-- Parent Menu sebagai Header --}}
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">{{ $parent['name'] }}</span>
         </li>
-        <li class="menu-item">
-          <a href="#" class="menu-link">
-            <div>Dashboard Sekolah</div>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="#" class="menu-link">
-            <div>Dashboard Siswa</div>
-          </a>
-        </li>
-      </ul>
-    </li>
 
-    <li class="menu-header small text-uppercase">
-      <span class="menu-header-text">Kelola Data</span>
-    </li>
-    <li class="menu-item">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-data"></i>
-        <div>Kelola Data</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item"><a href="#" class="menu-link"><div>Siswa</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Orang Tua Siswa</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Kelas</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Kejuruan</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Mata Pelajaran</div></a></li>
-      </ul>
-    </li>
-
-    <li class="menu-header small text-uppercase">
-      <span class="menu-header-text">Keuangan</span>
-    </li>
-    <li class="menu-item">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-dollar-circle"></i>
-        <div>Keuangan</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item"><a href="#" class="menu-link"><div>Dashboard Pembayaran</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Pengeluaran</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Tagihan Manual</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Pemasukan Lain Lain</div></a></li>
-      </ul>
-    </li>
-
-    <li class="menu-header small text-uppercase">
-      <span class="menu-header-text">HRD</span>
-    </li>
-    <li class="menu-item">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-id-card"></i>
-        <div>HRD</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item"><a href="#" class="menu-link"><div>Master Data Gaji Guru</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Gaji</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Absensi</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Lembur</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Cuti</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Tunjangan</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Pemotongan</div></a></li>
-        <li class="menu-item"><a href="#" class="menu-link"><div>Piutang</div></a></li>
-      </ul>
-    </li>
-
-    @canany(['auth.roles.view', 'auth.users.view'])
-      <li class="menu-header small text-uppercase">
-        <span class="menu-header-text">Autentikasi</span>
-      </li>
-      @php(
-        $isAuthMenuOpen = request()->routeIs('auth.levels.*') || request()->routeIs('auth.users.*')
-      )
-      <li class="menu-item {{ $isAuthMenuOpen ? 'active open' : '' }}">
-        <a href="javascript:void(0);" class="menu-link menu-toggle">
-          <i class="menu-icon tf-icons bx bx-lock-alt"></i>
-          <div data-i18n="Authentication">Autentikasi</div>
+        {{-- Child Menu sebagai Menu Items --}}
+        @if (!empty($parent['children']))
+          @foreach ($parent['children'] as $child)
+            <li class="menu-item{{ ($child['is_active'] ?? false) ? ' active' : '' }}">
+              <a href="{{ $child['url'] ?? '#' }}" class="menu-link">
+                <i class="menu-icon tf-icons {{ $child['icon'] ?? 'bx bx-collection' }}"></i>
+                <div data-i18n="{{ $child['name'] }}">{{ $child['name'] }}</div>
+              </a>
+            </li>
+          @endforeach
+        @endif
+      @endforeach
+    @else
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link text-muted">
+          <i class="menu-icon tf-icons bx bx-time-five"></i>
+          <div>Menu akan tersedia setelah dikonfigurasi.</div>
         </a>
-        <ul class="menu-sub">
-          @can('auth.roles.view')
-            <li class="menu-item {{ request()->routeIs('auth.levels.*') ? 'active' : '' }}">
-              <a href="{{ route('auth.levels.index') }}" class="menu-link">
-                <div data-i18n="Level User">Level User</div>
-              </a>
-            </li>
-          @endcan
-          @can('auth.users.view')
-            <li class="menu-item {{ request()->routeIs('auth.users.*') ? 'active' : '' }}">
-              <a href="{{ route('auth.users.index') }}" class="menu-link">
-                <div data-i18n="Pengguna">User</div>
-              </a>
-            </li>
-          @endcan
-        </ul>
       </li>
-    @endcanany
+    @endif
   </ul>
 </aside>
 

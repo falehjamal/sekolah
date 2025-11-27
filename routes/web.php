@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
+use App\Http\Controllers\Tenant\SiswaController;
 use App\Http\Controllers\UserAccountController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -22,4 +23,7 @@ Route::middleware('auth')->group(function () {
             ->parameters(['user' => 'user'])
             ->except('show');
     });
+
+    // Tenant Routes - Siswa
+    Route::resource('siswa', SiswaController::class);
 });
