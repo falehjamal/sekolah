@@ -37,6 +37,11 @@ class Siswa extends Model
         'tanggal_lahir' => 'date',
     ];
 
+    public function kelas(): BelongsTo
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
+    }
+
     public function jurusan(): BelongsTo
     {
         return $this->belongsTo(Jurusan::class, 'jurusan_id');

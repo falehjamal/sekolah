@@ -45,7 +45,13 @@
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted text-uppercase">Kelas</small>
-                        <p class="fw-semibold mb-0">Kelas {{ $siswa->kelas_id }}</p>
+                        <p class="fw-semibold mb-0">
+                            @if ($siswa->kelas)
+                                {{ $siswa->kelas->nama_kelas }} (Tingkat {{ $siswa->kelas->tingkat }})
+                            @else
+                                -
+                            @endif
+                        </p>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted text-uppercase">Jurusan</small>

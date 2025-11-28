@@ -28,16 +28,27 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
+            @php
+                $disableSiswaForm = $jurusanList->isEmpty() || $kelasList->isEmpty();
+            @endphp
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Data Siswa</h5>
-                <button type="button" class="btn btn-primary" onclick="tambahData()" @if ($jurusanList->isEmpty()) disabled @endif>
+                <button type="button" class="btn btn-primary" onclick="tambahData()" @if ($disableSiswaForm) disabled @endif>
                     <i class="bx bx-plus me-1"></i> Tambah Siswa
                 </button>
             </div>
             <div class="card-body">
-                @if ($jurusanList->isEmpty())
+                @if ($disableSiswaForm)
                     <div class="alert alert-warning" role="alert">
-                        Belum ada data jurusan. Tambahkan data jurusan terlebih dahulu melalui menu Jurusan sebelum menambahkan siswa.
+                        <strong>Perlu data pendukung:</strong>
+                        <ul class="mb-0 ps-3">
+                            @if ($jurusanList->isEmpty())
+                                <li>Belum ada data jurusan. Tambahkan melalui menu Jurusan.</li>
+                            @endif
+                            @if ($kelasList->isEmpty())
+                                <li>Belum ada data kelas. Tambahkan melalui menu Kelas.</li>
+                            @endif
+                        </ul>
                     </div>
                 @endif
                 <div class="table-responsive text-nowrap">
@@ -118,8 +129,13 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="kelas_id" class="form-label">Kelas ID <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="kelas_id" name="kelas_id" placeholder="ID Kelas" required>
+                            <label for="kelas_id" class="form-label">Kelas <span class="text-danger">*</span></label>
+                            <select class="form-select select2" id="kelas_id" name="kelas_id" data-placeholder="Pilih Kelas" required>
+                                <option value="">Pilih Kelas</option>
+                                @foreach ($kelasList as $kelas)
+                                    <option value="{{ $kelas->id }}">{{ $kelas->nama_kelas }} (Tingkat {{ $kelas->tingkat }})</option>
+                                @endforeach
+                            </select>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -201,12 +217,19 @@ let table;
 let isEditMode = false;
 
 $(document).ready(function() {
-    $('#jurusan_id').select2({
-        dropdownParent: $('#modalForm'),
-        theme: 'bootstrap4',
-        placeholder: 'Pilih Jurusan',
-        width: '100%',
-        allowClear: true
+    const select2Config = {
+        '#jurusan_id': 'Pilih Jurusan',
+        '#kelas_id': 'Pilih Kelas'
+    };
+
+    Object.entries(select2Config).forEach(([selector, placeholder]) => {
+        $(selector).select2({
+            dropdownParent: $('#modalForm'),
+            theme: 'bootstrap4',
+            placeholder,
+            width: '100%',
+            allowClear: true
+        });
     });
 
     // Initialize DataTable
@@ -257,6 +280,7 @@ function tambahData() {
     $('#formSiswa')[0].reset();
     $('#siswa_id').val('');
     $('#jurusan_id').val('').trigger('change');
+    $('#kelas_id').val('').trigger('change');
     clearValidation();
     $('#modalForm').modal('show');
 }
@@ -283,8 +307,8 @@ function editData(id) {
                 $('#tempat_lahir').val(data.tempat_lahir);
                 $('#tanggal_lahir').val(data.tanggal_lahir);
                 $('#alamat').val(data.alamat);
-                $('#kelas_id').val(data.kelas_id);
-                $('#jurusan_id').val(data.jurusan_id).trigger('change');
+                $('#kelas_id').val(data.kelas_id ?? '').trigger('change');
+                $('#jurusan_id').val(data.jurusan_id ?? '').trigger('change');
                 $('#orangtua_id').val(data.orangtua_id);
                 $('#no_hp').val(data.no_hp);
                 $('#status').val(data.status);

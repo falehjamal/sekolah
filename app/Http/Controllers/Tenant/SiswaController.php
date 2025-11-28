@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Jurusan;
+use App\Models\Tenant\Kelas;
 use App\Models\Tenant\Siswa;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Http\JsonResponse;
@@ -38,14 +39,19 @@ class SiswaController extends Controller
             ->orderBy('nama_jurusan')
             ->get(['id', 'kode', 'nama_jurusan']);
 
+        $kelasList = Kelas::query()
+            ->orderBy('nama_kelas')
+            ->get(['id', 'nama_kelas', 'tingkat']);
+
         return view('tenant.siswa.index', [
             'jurusanList' => $jurusanList,
+            'kelasList' => $kelasList,
         ]);
     }
 
     public function datatable(): JsonResponse
     {
-        $siswa = Siswa::query()->with('jurusan');
+        $siswa = Siswa::query()->with(['jurusan', 'kelas']);
 
         return DataTables::of($siswa)
             ->addIndexColumn()
@@ -60,9 +66,10 @@ class SiswaController extends Controller
                 return sprintf('%s, %s', $row->tempat_lahir, $tanggal);
             })
             ->addColumn('kelas_info', function (Siswa $row): string {
+                $kelasName = $row->kelas ? $row->kelas->nama_kelas : 'Belum diatur';
                 $jurusanName = $row->jurusan?->nama_jurusan ?? 'Belum diatur';
 
-                return sprintf('Kelas %s - %s', $row->kelas_id, $jurusanName);
+                return sprintf('%s - %s', $kelasName, $jurusanName);
             })
             ->addColumn('status_badge', function ($row) {
                 return $row->status_badge;
@@ -86,6 +93,7 @@ class SiswaController extends Controller
         $connection = $siswa->getConnectionName();
 
         $jurusanTable = (new Jurusan)->getTable();
+        $kelasTable = (new Kelas)->getTable();
 
         $validator = Validator::make($request->all(), [
             'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis',
@@ -95,7 +103,7 @@ class SiswaController extends Controller
             'tempat_lahir' => 'required|string|max:100',
             'tanggal_lahir' => 'required|date',
             'alamat' => 'required|string',
-            'kelas_id' => 'required|integer',
+            'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
             'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
             'orangtua_id' => 'required|integer',
             'no_hp' => 'nullable|string|max:20',
@@ -113,6 +121,7 @@ class SiswaController extends Controller
             'tanggal_lahir.date' => 'Format tanggal lahir tidak valid',
             'alamat.required' => 'Alamat harus diisi',
             'kelas_id.required' => 'Kelas harus dipilih',
+            'kelas_id.exists' => 'Kelas tidak valid',
             'jurusan_id.required' => 'Jurusan harus dipilih',
             'jurusan_id.exists' => 'Jurusan tidak valid',
             'orangtua_id.required' => 'Orang tua harus dipilih',
@@ -154,7 +163,7 @@ class SiswaController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $siswa = Siswa::with('jurusan')->findOrFail($id);
+            $siswa = Siswa::with(['jurusan', 'kelas'])->findOrFail($id);
 
             return response()->json([
                 'success' => true,
@@ -170,7 +179,7 @@ class SiswaController extends Controller
 
     public function detail(Siswa $siswa): View
     {
-        $siswa->load('jurusan');
+        $siswa->load(['jurusan', 'kelas']);
 
         return view('tenant.siswa.show', [
             'siswa' => $siswa,
@@ -186,6 +195,8 @@ class SiswaController extends Controller
             $tableName = $siswa->getTable();
             $jurusanTable = (new Jurusan)->getTable();
 
+            $kelasTable = (new Kelas)->getTable();
+
             $validator = Validator::make($request->all(), [
                 'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis,'.$id,
                 'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn,'.$id,
@@ -194,7 +205,7 @@ class SiswaController extends Controller
                 'tempat_lahir' => 'required|string|max:100',
                 'tanggal_lahir' => 'required|date',
                 'alamat' => 'required|string',
-                'kelas_id' => 'required|integer',
+                'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
                 'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
                 'orangtua_id' => 'required|integer',
                 'no_hp' => 'nullable|string|max:20',
@@ -212,6 +223,7 @@ class SiswaController extends Controller
                 'tanggal_lahir.date' => 'Format tanggal lahir tidak valid',
                 'alamat.required' => 'Alamat harus diisi',
                 'kelas_id.required' => 'Kelas harus dipilih',
+                'kelas_id.exists' => 'Kelas tidak valid',
                 'jurusan_id.required' => 'Jurusan harus dipilih',
                 'jurusan_id.exists' => 'Jurusan tidak valid',
                 'orangtua_id.required' => 'Orang tua harus dipilih',

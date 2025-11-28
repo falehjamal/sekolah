@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\Tenant\JurusanController;
+use App\Http\Controllers\Tenant\KelasController;
 use App\Http\Controllers\Tenant\SiswaController;
 use App\Http\Controllers\UserAccountController;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function () {
 
     // Tenant Routes - Jurusan & Siswa
     Route::resource('jurusan', JurusanController::class);
+    Route::resource('kelas', KelasController::class);
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
     Route::resource('siswa', SiswaController::class);
 });
