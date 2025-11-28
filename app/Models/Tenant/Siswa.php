@@ -6,6 +6,7 @@ use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Siswa extends Model
 {
@@ -28,7 +29,6 @@ class Siswa extends Model
         'alamat',
         'kelas_id',
         'jurusan_id',
-        'orangtua_id',
         'no_hp',
         'status',
     ];
@@ -45,6 +45,11 @@ class Siswa extends Model
     public function jurusan(): BelongsTo
     {
         return $this->belongsTo(Jurusan::class, 'jurusan_id');
+    }
+
+    public function orangtua(): HasMany
+    {
+        return $this->hasMany(Orangtua::class, 'siswa_id');
     }
 
     public function getJkLengkapAttribute(): string

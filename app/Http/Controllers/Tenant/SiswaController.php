@@ -95,6 +95,20 @@ class SiswaController extends Controller
         $jurusanTable = (new Jurusan)->getTable();
         $kelasTable = (new Kelas)->getTable();
 
+        $payloadFields = [
+            'nis',
+            'nisn',
+            'nama',
+            'jk',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'alamat',
+            'kelas_id',
+            'jurusan_id',
+            'no_hp',
+            'status',
+        ];
+
         $validator = Validator::make($request->all(), [
             'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis',
             'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn',
@@ -105,7 +119,6 @@ class SiswaController extends Controller
             'alamat' => 'required|string',
             'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
             'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
-            'orangtua_id' => 'required|integer',
             'no_hp' => 'nullable|string|max:20',
             'status' => 'required|in:aktif,alumni,keluar',
         ], [
@@ -124,7 +137,6 @@ class SiswaController extends Controller
             'kelas_id.exists' => 'Kelas tidak valid',
             'jurusan_id.required' => 'Jurusan harus dipilih',
             'jurusan_id.exists' => 'Jurusan tidak valid',
-            'orangtua_id.required' => 'Orang tua harus dipilih',
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
         ]);
@@ -140,7 +152,7 @@ class SiswaController extends Controller
         try {
             DB::connection($connection)->beginTransaction();
 
-            $siswa = Siswa::create($request->all());
+            $siswa = Siswa::create($request->only($payloadFields));
 
             DB::connection($connection)->commit();
 
@@ -179,7 +191,7 @@ class SiswaController extends Controller
 
     public function detail(Siswa $siswa): View
     {
-        $siswa->load(['jurusan', 'kelas']);
+        $siswa->load(['jurusan', 'kelas', 'orangtua']);
 
         return view('tenant.siswa.show', [
             'siswa' => $siswa,
@@ -197,6 +209,20 @@ class SiswaController extends Controller
 
             $kelasTable = (new Kelas)->getTable();
 
+            $payloadFields = [
+                'nis',
+                'nisn',
+                'nama',
+                'jk',
+                'tempat_lahir',
+                'tanggal_lahir',
+                'alamat',
+                'kelas_id',
+                'jurusan_id',
+                'no_hp',
+                'status',
+            ];
+
             $validator = Validator::make($request->all(), [
                 'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis,'.$id,
                 'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn,'.$id,
@@ -207,7 +233,6 @@ class SiswaController extends Controller
                 'alamat' => 'required|string',
                 'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
                 'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
-                'orangtua_id' => 'required|integer',
                 'no_hp' => 'nullable|string|max:20',
                 'status' => 'required|in:aktif,alumni,keluar',
             ], [
@@ -226,7 +251,6 @@ class SiswaController extends Controller
                 'kelas_id.exists' => 'Kelas tidak valid',
                 'jurusan_id.required' => 'Jurusan harus dipilih',
                 'jurusan_id.exists' => 'Jurusan tidak valid',
-                'orangtua_id.required' => 'Orang tua harus dipilih',
                 'status.required' => 'Status harus dipilih',
                 'status.in' => 'Status tidak valid',
             ]);
@@ -241,7 +265,7 @@ class SiswaController extends Controller
 
             DB::connection($connection)->beginTransaction();
 
-            $siswa->update($request->all());
+            $siswa->update($request->only($payloadFields));
 
             DB::connection($connection)->commit();
 

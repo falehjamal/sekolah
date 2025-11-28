@@ -148,11 +148,6 @@
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="orangtua_id" class="form-label">Orang Tua ID <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="orangtua_id" name="orangtua_id" placeholder="ID Orang Tua" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -309,7 +304,6 @@ function editData(id) {
                 $('#alamat').val(data.alamat);
                 $('#kelas_id').val(data.kelas_id ?? '').trigger('change');
                 $('#jurusan_id').val(data.jurusan_id ?? '').trigger('change');
-                $('#orangtua_id').val(data.orangtua_id);
                 $('#no_hp').val(data.no_hp);
                 $('#status').val(data.status);
 
@@ -340,7 +334,6 @@ function simpanData() {
         alamat: $('#alamat').val(),
         kelas_id: $('#kelas_id').val(),
         jurusan_id: $('#jurusan_id').val(),
-        orangtua_id: $('#orangtua_id').val(),
         no_hp: $('#no_hp').val(),
         status: $('#status').val()
     };

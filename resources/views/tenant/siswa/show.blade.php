@@ -71,6 +71,27 @@
                         <small class="text-muted text-uppercase d-block mb-1">Alamat</small>
                         <p class="fw-semibold mb-0">{{ $siswa->alamat }}</p>
                     </div>
+                    <div class="col-12">
+                        <small class="text-muted text-uppercase d-block mb-1">Orang Tua / Wali</small>
+                        @if ($siswa->orangtua->isNotEmpty())
+                            <ul class="list-unstyled mb-0">
+                                @foreach ($siswa->orangtua as $orangtua)
+                                    <li class="mb-2">
+                                        <span class="fw-semibold">{{ $orangtua->nama }}</span>
+                                        <small class="text-muted">- {{ ucfirst($orangtua->hubungan) }}</small>
+                                        @if ($orangtua->no_hp)
+                                            <span class="d-block text-muted">No HP: {{ $orangtua->no_hp }}</span>
+                                        @endif
+                                        @if ($orangtua->pekerjaan)
+                                            <span class="d-block text-muted">Pekerjaan: {{ $orangtua->pekerjaan }}</span>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="fw-semibold mb-0">-</p>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
