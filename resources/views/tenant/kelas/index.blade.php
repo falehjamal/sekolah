@@ -4,12 +4,98 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
 <style>
 .toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 9999;
+}
+.table-modern thead th {
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: #9195a3;
+    border-bottom: none;
+}
+.table-modern tbody tr {
+    border-bottom: 1px solid rgba(145, 149, 163, 0.15);
+}
+.table-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.table-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    color: #fff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+.avatar-indigo {
+    background: linear-gradient(135deg, #5f72ff, #9b23ea);
+}
+.table-card__title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.table-meta {
+    list-style: none;
+    padding: 0;
+    margin: 0.25rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+}
+.table-meta li {
+    display: flex;
+    gap: 0.75rem;
+}
+.table-meta li span {
+    min-width: 90px;
+    font-weight: 600;
+    color: #8c8fa5;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+}
+.table-stack {
+    padding: 0.75rem 0;
+}
+.select2-container--bootstrap4 .select2-selection {
+    min-height: 38px;
+    padding: 6px 8px;
+    border-radius: 0.75rem;
+}
+.select2-container--bootstrap4 .select2-selection__rendered {
+    line-height: 24px;
+}
+.datatable-top .form-select,
+.datatable-top .form-control {
+    border-radius: 999px;
+    border-color: var(--bs-border-color);
+}
+.datatable-top .form-control {
+    padding-left: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23888' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.414-1.415l-3.85-3.849zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.85rem center;
+    background-size: 1rem;
+}
+.datatable-bottom .pagination {
+    margin-bottom: 0;
+}
+.datatable-bottom .pagination .page-link {
+    border-radius: 10px;
+    margin: 0 0.15rem;
 }
 </style>
 @endpush
@@ -18,22 +104,24 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Data Kelas</h5>
+            <div class="card-header flex-wrap gap-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">Data Kelas</h5>
+                    <p class="text-muted mb-0 small">Daftar kelas lengkap dengan tingkat dan jurusan yang terkait.</p>
+                </div>
                 <button type="button" class="btn btn-primary" onclick="tambahKelas()">
                     <i class="bx bx-plus me-1"></i> Tambah Kelas
                 </button>
             </div>
             <div class="card-body">
                 <div class="table-responsive text-nowrap">
-                    <table class="table table-striped" id="tableKelas">
+                    <table class="table table-striped table-modern" id="tableKelas">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>Nama Kelas</th>
-                                <th>Tingkat</th>
-                                <th>Jurusan</th>
-                                <th width="15%">Aksi</th>
+                                <th>Informasi Kelas</th>
+                                <th>Detail Jurusan</th>
+                                <th width="12%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -66,7 +154,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="jurusan_id" class="form-label">Jurusan</label>
-                        <select class="form-select" id="jurusan_id" name="jurusan_id">
+                        <select class="form-select select2" id="jurusan_id" name="jurusan_id" data-placeholder="Pilih jurusan">
                             <option value="">Pilih Jurusan (opsional)</option>
                             @foreach ($jurusanList as $jurusan)
                                 <option value="{{ $jurusan->id }}">{{ $jurusan->kode }} - {{ $jurusan->nama_jurusan }}</option>
@@ -110,6 +198,7 @@
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 let kelasTable;
 let isKelasEditMode = false;
@@ -122,18 +211,27 @@ $(document).ready(function() {
             url: "{{ route('kelas.index') }}",
             type: 'GET'
         },
+        dom: "<'datatable-top d-flex flex-wrap align-items-center justify-content-between mb-3'<'d-flex align-items-center gap-2'l><'datatable-search'f>>" +
+             "rt" +
+             "<'datatable-bottom d-flex flex-wrap align-items-center justify-content-between'<'text-muted'i><'pagination pagination-sm'p>>",
         columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'nama_kelas', name: 'nama_kelas' },
-            { data: 'tingkat', name: 'tingkat' },
-            { data: 'jurusan_nama', name: 'jurusan_id', orderable: false, searchable: false },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
+            { data: 'info_card', name: 'nama_kelas', orderable: false, searchable: true },
+            { data: 'detail_card', name: 'jurusan_id', orderable: false, searchable: true },
+            { data: 'action', name: 'action', orderable: false, searchable: false, width: '12%' }
         ],
         language: {
             processing: 'Memuat data...',
             zeroRecords: 'Data tidak ditemukan'
-        },
-        order: [[1, 'asc']]
+        }
+    });
+
+    $('#jurusan_id').select2({
+        dropdownParent: $('#modalKelas'),
+        theme: 'bootstrap4',
+        placeholder: 'Pilih jurusan',
+        width: '100%',
+        allowClear: true
     });
 
     $('#formKelas').on('submit', function(e) {

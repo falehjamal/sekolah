@@ -42,8 +42,29 @@ class JurusanController extends Controller
 
         return DataTables::of($jurusan)
             ->addIndexColumn()
-            ->addColumn('deskripsi_ringkas', function (Jurusan $row): string {
-                return Str::limit($row->deskripsi ?? '-', 60);
+            ->addColumn('info_card', function (Jurusan $row): string {
+                $initial = strtoupper(Str::substr($row->nama_jurusan, 0, 1));
+
+                return '
+                    <div class="table-card">
+                        <div class="table-avatar avatar-purple">'.$initial.'</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">'.$row->nama_jurusan.'</div>
+                            <ul class="table-meta">
+                                <li><span>Kode</span>'.$row->kode.'</li>
+                                <li><span>Dibuat</span>'.$row->created_at?->translatedFormat('d M Y').'</li>
+                            </ul>
+                        </div>
+                    </div>';
+            })
+            ->addColumn('detail_card', function (Jurusan $row): string {
+                $description = $row->deskripsi ?: 'Belum ada deskripsi';
+
+                return '
+                    <div class="table-stack">
+                        <p class="mb-1 text-muted small">Deskripsi</p>
+                        <p class="mb-0">'.e(Str::limit($description, 140)).'</p>
+                    </div>';
             })
             ->addColumn('action', function (Jurusan $row): string {
                 $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editJurusan('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
@@ -51,7 +72,7 @@ class JurusanController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['info_card', 'detail_card', 'action'])
             ->make(true);
     }
 

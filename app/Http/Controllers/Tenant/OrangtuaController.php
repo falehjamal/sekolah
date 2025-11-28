@@ -48,20 +48,55 @@ class OrangtuaController extends Controller
 
         return DataTables::of($orangtua)
             ->addIndexColumn()
-            ->addColumn('siswa_nama', function (Orangtua $row): string {
-                if (! $row->siswa) {
-                    return '-';
-                }
-
-                return $row->siswa->nama.' ('.$row->siswa->nis.')';
-            })
-            ->addColumn('hubungan_label', function (Orangtua $row): string {
-                return match ($row->hubungan) {
+            ->addColumn('orangtua_card', function (Orangtua $row): string {
+                $initial = strtoupper(mb_substr($row->nama, 0, 1));
+                $hubungan = match ($row->hubungan) {
                     'ayah' => 'Ayah',
                     'ibu' => 'Ibu',
                     'wali' => 'Wali',
                     default => ucfirst($row->hubungan),
                 };
+
+                return '
+                    <div class="table-card">
+                        <div class="table-avatar avatar-orange">'.$initial.'</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">'.$row->nama.'</div>
+                            <ul class="table-meta">
+                                <li><span>Hubungan</span>'.$hubungan.'</li>
+                                <li><span>Dibuat</span>'.$row->created_at?->translatedFormat('d M Y').'</li>
+                            </ul>
+                        </div>
+                    </div>';
+            })
+            ->addColumn('siswa_card', function (Orangtua $row): string {
+                if (! $row->siswa) {
+                    return '<div class="table-stack"><p class="mb-0 text-muted">Belum terhubung ke siswa.</p></div>';
+                }
+
+                return '
+                    <div class="table-stack">
+                        <p class="mb-1 text-muted small">Informasi Siswa</p>
+                        <ul class="table-meta">
+                            <li><span>Nama</span>'.$row->siswa->nama.'</li>
+                            <li><span>NIS</span>'.$row->siswa->nis.'</li>
+                            <li><span>NISN</span>'.$row->siswa->nisn.'</li>
+                        </ul>
+                    </div>';
+            })
+            ->addColumn('contact_card', function (Orangtua $row): string {
+                $noHp = $row->no_hp ?: '-';
+                $pekerjaan = $row->pekerjaan ?: '-';
+                $alamat = $row->alamat ? e($row->alamat) : '-';
+
+                return '
+                    <div class="table-stack">
+                        <ul class="table-meta">
+                            <li><span>No HP</span>'.$noHp.'</li>
+                            <li><span>Pekerjaan</span>'.$pekerjaan.'</li>
+                            <li><span>Alamat</span>'.$alamat.'</li>
+                        </ul>
+                    </div>';
             })
             ->addColumn('action', function (Orangtua $row): string {
                 $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editOrangtua('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
@@ -69,7 +104,7 @@ class OrangtuaController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['orangtua_card', 'siswa_card', 'contact_card', 'action'])
             ->make(true);
     }
 

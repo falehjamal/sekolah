@@ -11,6 +11,82 @@
     right: 20px;
     z-index: 9999;
 }
+.table-modern thead th {
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: #9195a3;
+    border-bottom: none;
+}
+.table-modern tbody tr {
+    border-bottom: 1px solid rgba(145, 149, 163, 0.15);
+}
+.table-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.table-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    color: #fff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+.avatar-purple {
+    background: linear-gradient(135deg, #892CDC, #BC6FF1);
+}
+.table-card__title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.table-meta {
+    list-style: none;
+    padding: 0;
+    margin: 0.25rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+}
+.table-meta li {
+    display: flex;
+    gap: 0.75rem;
+}
+.table-meta li span {
+    min-width: 90px;
+    font-weight: 600;
+    color: #8c8fa5;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+}
+.table-stack {
+    padding: 0.75rem 0;
+}
+.datatable-top .form-select,
+.datatable-top .form-control {
+    border-radius: 999px;
+    border-color: var(--bs-border-color);
+}
+.datatable-top .form-control {
+    padding-left: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23888' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.414-1.415l-3.85-3.849zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.85rem center;
+    background-size: 1rem;
+}
+.datatable-bottom .pagination {
+    margin-bottom: 0;
+}
+.datatable-bottom .pagination .page-link {
+    border-radius: 10px;
+    margin: 0 0.15rem;
+}
 </style>
 @endpush
 
@@ -18,22 +94,24 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Data Jurusan</h5>
+            <div class="card-header flex-wrap gap-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">Data Jurusan</h5>
+                    <p class="text-muted mb-0 small">Kelola daftar jurusan beserta deskripsi dan kode uniknya.</p>
+                </div>
                 <button type="button" class="btn btn-primary" onclick="tambahJurusan()">
                     <i class="bx bx-plus me-1"></i> Tambah Jurusan
                 </button>
             </div>
             <div class="card-body">
                 <div class="table-responsive text-nowrap">
-                    <table class="table table-striped" id="tableJurusan">
+                    <table class="table table-striped table-modern" id="tableJurusan">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>Kode</th>
-                                <th>Nama Jurusan</th>
-                                <th>Deskripsi</th>
-                                <th width="15%">Aksi</th>
+                                <th>Informasi</th>
+                                <th>Detail</th>
+                                <th width="12%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -117,12 +195,14 @@ $(document).ready(function() {
             url: "{{ route('jurusan.index') }}",
             type: 'GET'
         },
+        dom: "<'datatable-top d-flex flex-wrap align-items-center justify-content-between mb-3'<'d-flex align-items-center gap-2'l><'datatable-search'f>>" +
+             "rt" +
+             "<'datatable-bottom d-flex flex-wrap align-items-center justify-content-between'<'text-muted'i><'pagination pagination-sm'p>>",
         columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'kode', name: 'kode' },
-            { data: 'nama_jurusan', name: 'nama_jurusan' },
-            { data: 'deskripsi_ringkas', name: 'deskripsi', orderable: false, searchable: false },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
+            { data: 'info_card', name: 'nama_jurusan', orderable: false, searchable: true },
+            { data: 'detail_card', name: 'kode', orderable: false, searchable: true },
+            { data: 'action', name: 'action', orderable: false, searchable: false, width: '12%' }
         ],
         language: {
             processing: 'Memuat data...',

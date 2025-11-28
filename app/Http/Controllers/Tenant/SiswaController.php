@@ -56,23 +56,53 @@ class SiswaController extends Controller
         return DataTables::of($siswa)
             ->addIndexColumn()
             ->addColumn('siswa_info', function (Siswa $row): string {
-                return sprintf('%s - %s (%s)', $row->nis, $row->nama, $row->jk_lengkap);
+                $initial = strtoupper(mb_substr($row->nama, 0, 1));
+
+                return '
+                    <div class="table-card">
+                        <div class="table-avatar">'.$initial.'</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">'.$row->nama.'</div>
+                            <ul class="table-meta">
+                                <li><span>NIS</span>'.$row->nis.'</li>
+                                <li><span>NISN</span>'.$row->nisn.'</li>
+                                <li><span>JK</span>'.$row->jk_lengkap.'</li>
+                            </ul>
+                        </div>
+                    </div>';
             })
-            ->addColumn('ttl_info', function (Siswa $row): string {
+            ->addColumn('detail_info', function (Siswa $row): string {
                 $tanggal = $row->tanggal_lahir
                     ? Carbon::parse($row->tanggal_lahir)->translatedFormat('d F Y')
                     : '-';
 
-                return sprintf('%s, %s', $row->tempat_lahir, $tanggal);
+                $contact = $row->no_hp ?: '-';
+
+                return '
+                    <div class="table-stack">
+                        <ul class="table-meta">
+                            <li><span>Tempat</span>'.$row->tempat_lahir.'</li>
+                            <li><span>Tanggal</span>'.$tanggal.'</li>
+                            <li><span>Kontak</span>'.$contact.'</li>
+                        </ul>
+                    </div>';
             })
             ->addColumn('kelas_info', function (Siswa $row): string {
-                $kelasName = $row->kelas ? $row->kelas->nama_kelas : 'Belum diatur';
+                $kelasName = $row->kelas?->nama_kelas ?? 'Belum diatur';
+                $kelasLevel = $row->kelas?->tingkat ? 'Tingkat '.$row->kelas->tingkat : '-';
                 $jurusanName = $row->jurusan?->nama_jurusan ?? 'Belum diatur';
 
-                return sprintf('%s - %s', $kelasName, $jurusanName);
+                return '
+                    <div class="table-stack">
+                        <ul class="table-meta">
+                            <li><span>Kelas</span>'.$kelasName.'</li>
+                            <li><span>Level</span>'.$kelasLevel.'</li>
+                            <li><span>Jurusan</span>'.$jurusanName.'</li>
+                        </ul>
+                    </div>';
             })
             ->addColumn('status_badge', function ($row) {
-                return $row->status_badge;
+                return '<div class="status-pill">'.$row->status_badge.'</div>';
             })
             ->addColumn('action', function ($row) {
                 $detailUrl = route('siswa.detail', $row->id);
@@ -82,7 +112,7 @@ class SiswaController extends Controller
 
                 return $detailBtn.' '.$editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['status_badge', 'action'])
+            ->rawColumns(['siswa_info', 'detail_info', 'kelas_info', 'status_badge', 'action'])
             ->make(true);
     }
 

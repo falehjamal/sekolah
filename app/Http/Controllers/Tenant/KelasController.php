@@ -48,8 +48,34 @@ class KelasController extends Controller
 
         return DataTables::of($kelas)
             ->addIndexColumn()
-            ->addColumn('jurusan_nama', function (Kelas $row): string {
-                return $row->jurusan ? $row->jurusan->kode.' - '.$row->jurusan->nama_jurusan : '-';
+            ->addColumn('info_card', function (Kelas $row): string {
+                $initial = strtoupper(mb_substr($row->nama_kelas, 0, 1));
+                $jurusan = $row->jurusan ? $row->jurusan->nama_jurusan : 'Belum diatur';
+
+                return '
+                    <div class="table-card">
+                        <div class="table-avatar avatar-indigo">'.$initial.'</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">'.$row->nama_kelas.'</div>
+                            <ul class="table-meta">
+                                <li><span>Tingkat</span>'.$row->tingkat.'</li>
+                                <li><span>Jurusan</span>'.$jurusan.'</li>
+                            </ul>
+                        </div>
+                    </div>';
+            })
+            ->addColumn('detail_card', function (Kelas $row): string {
+                $jurusanKode = $row->jurusan?->kode ?? '-';
+                $jurusanNama = $row->jurusan?->nama_jurusan ?? 'Belum diatur';
+
+                return '
+                    <div class="table-stack">
+                        <ul class="table-meta">
+                            <li><span>Kode Jurusan</span>'.$jurusanKode.'</li>
+                            <li><span>Nama Jurusan</span>'.$jurusanNama.'</li>
+                            <li><span>Dibuat</span>'.$row->created_at?->translatedFormat('d M Y').'</li>
+                        </ul>
+                    </div>';
             })
             ->addColumn('action', function (Kelas $row): string {
                 $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editKelas('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
@@ -57,7 +83,7 @@ class KelasController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['info_card', 'detail_card', 'action'])
             ->make(true);
     }
 
