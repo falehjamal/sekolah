@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 
 use function Stancl\Tenancy\tenant;
 
@@ -59,4 +58,3 @@ return new class extends Migration
         return sprintf('%s_%s', $base, $tenantId);
     }
 };
-

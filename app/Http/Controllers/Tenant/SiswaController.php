@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant\Jurusan;
 use App\Models\Tenant\Siswa;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 use Yajra\DataTables\DataTables;
 
 class SiswaController extends Controller
@@ -31,26 +34,46 @@ class SiswaController extends Controller
             return $this->datatable();
         }
 
-        return view('tenant.siswa.index');
+        $jurusanList = Jurusan::query()
+            ->orderBy('nama_jurusan')
+            ->get(['id', 'kode', 'nama_jurusan']);
+
+        return view('tenant.siswa.index', [
+            'jurusanList' => $jurusanList,
+        ]);
     }
 
     public function datatable(): JsonResponse
     {
-        $siswa = Siswa::query();
+        $siswa = Siswa::query()->with('jurusan');
 
         return DataTables::of($siswa)
             ->addIndexColumn()
-            ->addColumn('jk_lengkap', function ($row) {
-                return $row->jk_lengkap;
+            ->addColumn('siswa_info', function (Siswa $row): string {
+                return sprintf('%s - %s (%s)', $row->nis, $row->nama, $row->jk_lengkap);
+            })
+            ->addColumn('ttl_info', function (Siswa $row): string {
+                $tanggal = $row->tanggal_lahir
+                    ? Carbon::parse($row->tanggal_lahir)->translatedFormat('d F Y')
+                    : '-';
+
+                return sprintf('%s, %s', $row->tempat_lahir, $tanggal);
+            })
+            ->addColumn('kelas_info', function (Siswa $row): string {
+                $jurusanName = $row->jurusan?->nama_jurusan ?? 'Belum diatur';
+
+                return sprintf('Kelas %s - %s', $row->kelas_id, $jurusanName);
             })
             ->addColumn('status_badge', function ($row) {
                 return $row->status_badge;
             })
             ->addColumn('action', function ($row) {
+                $detailUrl = route('siswa.detail', $row->id);
+                $detailBtn = '<a href="'.$detailUrl.'" class="btn btn-sm btn-icon btn-info" title="Detail"><i class="bx bx-show"></i></a>';
                 $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editData('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
                 $deleteBtn = '<button type="button" class="btn btn-sm btn-icon btn-danger" onclick="deleteData('.$row->id.')" title="Hapus"><i class="bx bx-trash"></i></button>';
 
-                return $editBtn.' '.$deleteBtn;
+                return $detailBtn.' '.$editBtn.' '.$deleteBtn;
             })
             ->rawColumns(['status_badge', 'action'])
             ->make(true);
@@ -62,6 +85,8 @@ class SiswaController extends Controller
         $tableName = $siswa->getTable();
         $connection = $siswa->getConnectionName();
 
+        $jurusanTable = (new Jurusan)->getTable();
+
         $validator = Validator::make($request->all(), [
             'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis',
             'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn',
@@ -71,7 +96,7 @@ class SiswaController extends Controller
             'tanggal_lahir' => 'required|date',
             'alamat' => 'required|string',
             'kelas_id' => 'required|integer',
-            'jurusan_id' => 'required|integer',
+            'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
             'orangtua_id' => 'required|integer',
             'no_hp' => 'nullable|string|max:20',
             'status' => 'required|in:aktif,alumni,keluar',
@@ -89,6 +114,7 @@ class SiswaController extends Controller
             'alamat.required' => 'Alamat harus diisi',
             'kelas_id.required' => 'Kelas harus dipilih',
             'jurusan_id.required' => 'Jurusan harus dipilih',
+            'jurusan_id.exists' => 'Jurusan tidak valid',
             'orangtua_id.required' => 'Orang tua harus dipilih',
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
@@ -128,7 +154,7 @@ class SiswaController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $siswa = Siswa::findOrFail($id);
+            $siswa = Siswa::with('jurusan')->findOrFail($id);
 
             return response()->json([
                 'success' => true,
@@ -142,6 +168,15 @@ class SiswaController extends Controller
         }
     }
 
+    public function detail(Siswa $siswa): View
+    {
+        $siswa->load('jurusan');
+
+        return view('tenant.siswa.show', [
+            'siswa' => $siswa,
+        ]);
+    }
+
     public function update(Request $request, string $id): JsonResponse
     {
         $connection = (new Siswa)->getConnectionName();
@@ -149,6 +184,7 @@ class SiswaController extends Controller
         try {
             $siswa = Siswa::findOrFail($id);
             $tableName = $siswa->getTable();
+            $jurusanTable = (new Jurusan)->getTable();
 
             $validator = Validator::make($request->all(), [
                 'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis,'.$id,
@@ -159,7 +195,7 @@ class SiswaController extends Controller
                 'tanggal_lahir' => 'required|date',
                 'alamat' => 'required|string',
                 'kelas_id' => 'required|integer',
-                'jurusan_id' => 'required|integer',
+                'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
                 'orangtua_id' => 'required|integer',
                 'no_hp' => 'nullable|string|max:20',
                 'status' => 'required|in:aktif,alumni,keluar',
@@ -177,6 +213,7 @@ class SiswaController extends Controller
                 'alamat.required' => 'Alamat harus diisi',
                 'kelas_id.required' => 'Kelas harus dipilih',
                 'jurusan_id.required' => 'Jurusan harus dipilih',
+                'jurusan_id.exists' => 'Jurusan tidak valid',
                 'orangtua_id.required' => 'Orang tua harus dipilih',
                 'status.required' => 'Status harus dipilih',
                 'status.in' => 'Status tidak valid',

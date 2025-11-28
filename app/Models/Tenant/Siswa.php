@@ -5,11 +5,13 @@ namespace App\Models\Tenant;
 use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Siswa extends Model
 {
     /** @use HasFactory<\Database\Factories\Tenant\SiswaFactory> */
     use HasFactory;
+
     use UsesTenantTableSuffix;
 
     protected $connection = 'sekolah_tenant';
@@ -35,21 +37,10 @@ class Siswa extends Model
         'tanggal_lahir' => 'date',
     ];
 
-    // Relationships
-    // public function kelas()
-    // {
-    //     return $this->belongsTo(Kelas::class, 'kelas_id');
-    // }
-
-    // public function jurusan()
-    // {
-    //     return $this->belongsTo(Jurusan::class, 'jurusan_id');
-    // }
-
-    // public function orangtua()
-    // {
-    //     return $this->belongsTo(Orangtua::class, 'orangtua_id');
-    // }
+    public function jurusan(): BelongsTo
+    {
+        return $this->belongsTo(Jurusan::class, 'jurusan_id');
+    }
 
     public function getJkLengkapAttribute(): string
     {

@@ -5,12 +5,21 @@
 @push('styles')
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
 <style>
 .toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 9999;
+}
+.select2-container--bootstrap4 .select2-selection {
+    min-height: 38px;
+    padding: 6px 8px;
+}
+.select2-container--bootstrap4 .select2-selection__rendered {
+    line-height: 24px;
 }
 </style>
 @endpush
@@ -21,26 +30,27 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Data Siswa</h5>
-                <button type="button" class="btn btn-primary" onclick="tambahData()">
+                <button type="button" class="btn btn-primary" onclick="tambahData()" @if ($jurusanList->isEmpty()) disabled @endif>
                     <i class="bx bx-plus me-1"></i> Tambah Siswa
                 </button>
             </div>
             <div class="card-body">
+                @if ($jurusanList->isEmpty())
+                    <div class="alert alert-warning" role="alert">
+                        Belum ada data jurusan. Tambahkan data jurusan terlebih dahulu melalui menu Jurusan sebelum menambahkan siswa.
+                    </div>
+                @endif
                 <div class="table-responsive text-nowrap">
                     <table class="table table-striped" id="tableSiswa">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>NIS</th>
+                                <th>Siswa</th>
                                 <th>NISN</th>
-                                <th>Nama</th>
-                                <th>JK</th>
-                                <th>Tempat Lahir</th>
-                                <th>Tanggal Lahir</th>
-                                <th>Kelas ID</th>
-                                <th>Jurusan ID</th>
+                                <th>TTL</th>
+                                <th>Kelas</th>
                                 <th>Status</th>
-                                <th width="12%">Aksi</th>
+                                <th width="15%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,8 +123,13 @@
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="jurusan_id" class="form-label">Jurusan ID <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="jurusan_id" name="jurusan_id" placeholder="ID Jurusan" required>
+                            <label for="jurusan_id" class="form-label">Jurusan <span class="text-danger">*</span></label>
+                            <select class="form-select select2" id="jurusan_id" name="jurusan_id" data-placeholder="Pilih jurusan" required>
+                                <option value="">Pilih Jurusan</option>
+                                @foreach ($jurusanList as $jurusan)
+                                    <option value="{{ $jurusan->id }}">{{ $jurusan->kode }} - {{ $jurusan->nama_jurusan }}</option>
+                                @endforeach
+                            </select>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -179,12 +194,21 @@
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
 let table;
 let isEditMode = false;
 
 $(document).ready(function() {
+    $('#jurusan_id').select2({
+        dropdownParent: $('#modalForm'),
+        theme: 'bootstrap4',
+        placeholder: 'Pilih Jurusan',
+        width: '100%',
+        allowClear: true
+    });
+
     // Initialize DataTable
     table = $('#tableSiswa').DataTable({
         processing: true,
@@ -195,15 +219,11 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'nis', name: 'nis' },
+            { data: 'siswa_info', name: 'nama' },
             { data: 'nisn', name: 'nisn' },
-            { data: 'nama', name: 'nama' },
-            { data: 'jk_lengkap', name: 'jk' },
-            { data: 'tempat_lahir', name: 'tempat_lahir' },
-            { data: 'tanggal_lahir', name: 'tanggal_lahir' },
-            { data: 'kelas_id', name: 'kelas_id' },
-            { data: 'jurusan_id', name: 'jurusan_id' },
-            { data: 'status_badge', name: 'status', orderable: false },
+            { data: 'ttl_info', name: 'tanggal_lahir', orderable: false, searchable: false },
+            { data: 'kelas_info', name: 'kelas_id', orderable: false, searchable: false },
+            { data: 'status_badge', name: 'status', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
         language: {
@@ -236,6 +256,7 @@ function tambahData() {
     $('#modalFormTitle').text('Tambah Data Siswa');
     $('#formSiswa')[0].reset();
     $('#siswa_id').val('');
+    $('#jurusan_id').val('').trigger('change');
     clearValidation();
     $('#modalForm').modal('show');
 }
@@ -263,7 +284,7 @@ function editData(id) {
                 $('#tanggal_lahir').val(data.tanggal_lahir);
                 $('#alamat').val(data.alamat);
                 $('#kelas_id').val(data.kelas_id);
-                $('#jurusan_id').val(data.jurusan_id);
+                $('#jurusan_id').val(data.jurusan_id).trigger('change');
                 $('#orangtua_id').val(data.orangtua_id);
                 $('#no_hp').val(data.no_hp);
                 $('#status').val(data.status);
@@ -383,12 +404,19 @@ function displayValidationErrors(errors) {
         const input = $('#' + field);
         input.addClass('is-invalid');
         input.siblings('.invalid-feedback').text(messages[0]);
+
+        if (input.hasClass('select2-hidden-accessible')) {
+            input.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+        }
     });
 }
 
 function clearValidation() {
     $('.form-control, .form-select').removeClass('is-invalid');
     $('.invalid-feedback').text('');
+    $('.select2').each(function() {
+        $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+    });
 }
 
 function setBtnLoading(loading) {
