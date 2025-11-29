@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
 use App\Http\Controllers\Tenant\MataPelajaranController;
@@ -21,12 +22,17 @@ Route::middleware('auth')->group(function () {
         Route::resource('level-user', LevelUserController::class)
             ->names('auth.levels')
             ->parameters(['level-user' => 'level'])
-            ->except('show');
+            ->except(['create', 'edit']);
 
         Route::resource('user', UserAccountController::class)
             ->names('auth.users')
             ->parameters(['user' => 'user'])
-            ->except('show');
+            ->except(['create', 'edit']);
+
+        Route::resource('menu', MenuController::class)
+            ->names('auth.menus')
+            ->parameters(['menu' => 'menu'])
+            ->except(['create', 'edit']);
     });
 
     // Tenant Routes - Jurusan & Siswa

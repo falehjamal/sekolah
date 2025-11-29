@@ -10,12 +10,19 @@ use App\Models\Tenant\UserAccount;
 use App\Support\TenantContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Stancl\Tenancy\Facades\Tenancy;
 
 class TenantDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        TenantContext::set((int) tenant('id'));
+        $tenantId = Tenancy::getTenant()?->getTenantKey();
+
+        if ($tenantId === null) {
+            throw new \RuntimeException('Tenant belum aktif saat menjalankan seeder.');
+        }
+
+        TenantContext::set((int) $tenantId);
 
         $levels = $this->seedLevels();
         $roles = $this->seedRoles();
@@ -30,7 +37,6 @@ class TenantDatabaseSeeder extends Seeder
                 'name' => 'Administrator',
                 'slug' => 'administrator',
                 'description' => 'Memiliki seluruh akses modul.',
-                'is_default' => true,
             ],
         ];
 

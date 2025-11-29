@@ -7,54 +7,129 @@ use App\Http\Requests\Auth\UpdateUserAccountRequest;
 use App\Models\Tenant\Level;
 use App\Models\Tenant\Role;
 use App\Models\Tenant\UserAccount;
+use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\DataTables;
 
 class UserAccountController extends Controller
 {
-    public function __construct()
+    public function __construct(protected TenantConnectionManager $tenantConnection)
     {
+        $this->middleware(function ($request, $next) {
+            if (session()->has('tenant_connection')) {
+                $this->tenantConnection->connectFromSession();
+            }
+
+            return $next($request);
+        });
+
         $this->middleware('permission:auth.users.view')->only('index');
-        $this->middleware('permission:auth.users.manage')->except('index');
+        $this->middleware('permission:auth.users.manage')->only(['store', 'update', 'destroy', 'show']);
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
-        $search = trim((string) $request->input('search'));
-
-        $users = UserAccount::query()
-            ->with('level')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($innerQuery) use ($search) {
-                    $innerQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('username', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+        if ($request->ajax()) {
+            return $this->datatable();
+        }
 
         return view('auth.users.index', [
-            'users' => $users,
-            'search' => $search,
-        ]);
-    }
-
-    public function create(): View
-    {
-        return view('auth.users.create', [
             'levels' => $this->levels(),
+            'canManage' => $this->canManageUsers(),
         ]);
     }
 
-    public function store(StoreUserAccountRequest $request): RedirectResponse
+    public function datatable(): JsonResponse
+    {
+        $users = UserAccount::query()
+            ->with(['level', 'roles'])
+            ->orderByDesc('created_at');
+
+        return DataTables::of($users)
+            ->addIndexColumn()
+            ->addColumn('info_card', function (UserAccount $row): string {
+                $statusClass = $row->is_active ? 'bg-label-success' : 'bg-label-secondary';
+                $statusLabel = $row->is_active ? 'Aktif' : 'Nonaktif';
+
+                return sprintf(
+                    '<div class="table-card">
+                        <div class="table-avatar avatar-indigo">%s</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">%s</div>
+                            <div class="text-muted small">%s</div>
+                            <span class="badge %s mt-1">%s</span>
+                        </div>
+                    </div>',
+                    strtoupper(mb_substr($row->name, 0, 1)),
+                    e($row->name),
+                    e($row->username),
+                    $statusClass,
+                    $statusLabel
+                );
+            })
+            ->addColumn('detail_card', function (UserAccount $row): string {
+                $email = $row->email ?: '-';
+                $levelName = $row->level?->name ?? 'Belum diatur';
+                $lastLogin = $row->last_login_at?->translatedFormat('d M Y H:i') ?? 'Belum pernah';
+
+                return sprintf(
+                    '<div class="table-stack">
+                        <ul class="table-meta">
+                            <li><span>Email</span>%s</li>
+                            <li><span>Level</span>%s</li>
+                            <li><span>Login Terakhir</span>%s</li>
+                        </ul>
+                    </div>',
+                    e($email),
+                    e($levelName),
+                    e($lastLogin)
+                );
+            })
+            ->addColumn('role_badges', function (UserAccount $row): string {
+                $roles = $row->roles->pluck('name');
+
+                if ($roles->isEmpty()) {
+                    return '<span class="text-muted small">Belum ada role</span>';
+                }
+
+                $badges = $roles->map(function ($role) {
+                    return '<span class="badge bg-label-info mb-1 me-1">'.e($role).'</span>';
+                })->implode('');
+
+                return '<div class="d-flex flex-wrap">'.$badges.'</div>';
+            })
+            ->addColumn('status_badge', function (UserAccount $row): string {
+                $class = $row->is_active ? 'bg-label-success' : 'bg-label-secondary';
+                $label = $row->is_active ? 'Aktif' : 'Nonaktif';
+
+                return '<span class="badge '.$class.'">'.$label.'</span>';
+            })
+            ->addColumn('action', function (UserAccount $row) {
+                if (! $this->canManageUsers()) {
+                    return '<span class="text-muted small">Tidak ada akses</span>';
+                }
+
+                $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editUser('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
+                $deleteBtn = '<button type="button" class="btn btn-sm btn-icon btn-danger" onclick="hapusUser('.$row->id.')" title="Hapus"><i class="bx bx-trash"></i></button>';
+
+                return $editBtn.' '.$deleteBtn;
+            })
+            ->rawColumns(['info_card', 'detail_card', 'role_badges', 'status_badge', 'action'])
+            ->make(true);
+    }
+
+    public function store(StoreUserAccountRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $connection = (new UserAccount)->getConnectionName();
 
-        DB::transaction(function () use ($data) {
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $user = UserAccount::query()->create([
                 'name' => $data['name'],
                 'username' => $data['username'],
@@ -65,26 +140,44 @@ class UserAccountController extends Controller
             ]);
 
             $this->syncRoleForUser($user, $data['level_id']);
-        });
 
-        return redirect()->route('auth.users.index')->with('status', 'Pengguna berhasil dibuat.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil dibuat.',
+                'data' => $user,
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan pengguna.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
-    public function edit(UserAccount $user): View
+    public function show(UserAccount $user): JsonResponse
     {
-        $user->load('level');
+        $user->load('level', 'roles');
 
-        return view('auth.users.edit', [
-            'user' => $user,
-            'levels' => $this->levels(),
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+            'roles' => $user->roles->pluck('name'),
         ]);
     }
 
-    public function update(UpdateUserAccountRequest $request, UserAccount $user): RedirectResponse
+    public function update(UpdateUserAccountRequest $request, UserAccount $user): JsonResponse
     {
         $data = $request->validated();
+        $connection = $user->getConnectionName();
 
-        DB::transaction(function () use ($data, $user) {
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $payload = [
                 'name' => $data['name'],
                 'username' => $data['username'],
@@ -99,19 +192,50 @@ class UserAccountController extends Controller
 
             $user->update($payload);
             $this->syncRoleForUser($user, $data['level_id']);
-        });
 
-        return redirect()->route('auth.users.index')->with('status', 'Pengguna berhasil diperbarui.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil diperbarui.',
+                'data' => $user,
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui pengguna.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
-    public function destroy(UserAccount $user): RedirectResponse
+    public function destroy(UserAccount $user): JsonResponse
     {
-        DB::transaction(function () use ($user) {
+        $connection = $user->getConnectionName();
+
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $user->syncRoles([]);
             $user->delete();
-        });
 
-        return redirect()->route('auth.users.index')->with('status', 'Pengguna berhasil dihapus.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil dihapus.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus pengguna.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     protected function levels()
@@ -129,5 +253,13 @@ class UserAccountController extends Controller
         );
 
         $user->syncRoles([$role->name]);
+    }
+
+    protected function canManageUsers(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        return $user?->can('auth.users.manage') ?? false;
     }
 }

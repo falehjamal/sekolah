@@ -53,18 +53,6 @@
   @enderror
 </div>
 
-<div class="form-check form-switch mb-4">
-  <input
-    type="checkbox"
-    class="form-check-input"
-    id="is_default"
-    name="is_default"
-    value="1"
-    {{ old('is_default', $level->is_default ?? false) ? 'checked' : '' }}
-  />
-  <label class="form-check-label" for="is_default">Set sebagai level default untuk pengguna baru</label>
-</div>
-
 <div class="mb-4">
   <h6 class="fw-semibold mb-2">Hak Akses Menu</h6>
   <p class="text-muted mb-3">Centang menu yang boleh diakses oleh level ini.</p>

@@ -17,16 +17,22 @@ class StoreLevelUserRequest extends FormRequest
 
     public function rules(): array
     {
-        $levelTable = (new Level)->getTable();
-        $permissionTable = (new Permission)->getTable();
+        $level = new Level;
+        $levelTable = $level->getTable();
+        $levelConnection = $level->getConnectionName();
+        $qualifiedLevelTable = $levelConnection ? $levelConnection.'.'.$levelTable : $levelTable;
+
+        $permission = new Permission;
+        $permissionTable = $permission->getTable();
+        $permissionConnection = $permission->getConnectionName();
+        $qualifiedPermissionTable = $permissionConnection ? $permissionConnection.'.'.$permissionTable : $permissionTable;
 
         return [
             'name' => ['required', 'string', 'max:150'],
-            'slug' => ['nullable', 'string', 'max:150', Rule::unique($levelTable, 'slug')],
+            'slug' => ['nullable', 'string', 'max:150', Rule::unique($qualifiedLevelTable, 'slug')],
             'description' => ['nullable', 'string'],
-            'is_default' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string', Rule::exists($permissionTable, 'name')],
+            'permissions.*' => ['string', Rule::exists($qualifiedPermissionTable, 'name')],
         ];
     }
 
@@ -36,7 +42,6 @@ class StoreLevelUserRequest extends FormRequest
 
         $this->merge([
             'slug' => $slugSource ? Str::slug($slugSource) : null,
-            'is_default' => $this->boolean('is_default'),
         ]);
     }
 }

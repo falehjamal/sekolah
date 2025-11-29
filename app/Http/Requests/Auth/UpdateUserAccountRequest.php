@@ -16,9 +16,17 @@ class UpdateUserAccountRequest extends FormRequest
 
     public function rules(): array
     {
-        $user = $this->route('user');
-        $userTable = (new UserAccount)->getTable();
-        $levelTable = (new Level)->getTable();
+        $routeUser = $this->route('user');
+
+        $userModel = new UserAccount;
+        $userTable = $userModel->getTable();
+        $userConnection = $userModel->getConnectionName();
+        $qualifiedUserTable = $userConnection ? $userConnection.'.'.$userTable : $userTable;
+
+        $levelModel = new Level;
+        $levelTable = $levelModel->getTable();
+        $levelConnection = $levelModel->getConnectionName();
+        $qualifiedLevelTable = $levelConnection ? $levelConnection.'.'.$levelTable : $levelTable;
 
         return [
             'name' => ['required', 'string', 'max:150'],
@@ -26,15 +34,15 @@ class UpdateUserAccountRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                Rule::unique($userTable, 'username')->ignore($user?->getKey()),
+                Rule::unique($qualifiedUserTable, 'username')->ignore($routeUser?->getKey()),
             ],
             'email' => [
                 'nullable',
                 'email',
                 'max:150',
-                Rule::unique($userTable, 'email')->ignore($user?->getKey()),
+                Rule::unique($qualifiedUserTable, 'email')->ignore($routeUser?->getKey()),
             ],
-            'level_id' => ['required', Rule::exists($levelTable, 'id')],
+            'level_id' => ['required', Rule::exists($qualifiedLevelTable, 'id')],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'is_active' => ['nullable', 'boolean'],
         ];

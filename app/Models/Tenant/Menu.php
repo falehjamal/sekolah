@@ -5,6 +5,9 @@ namespace App\Models\Tenant;
 use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Menu extends Model
 {
@@ -23,6 +26,7 @@ class Menu extends Model
         'sort_order',
         'is_active',
         'permission_name',
+        'guard_name',
     ];
 
     protected $casts = [
@@ -30,7 +34,17 @@ class Menu extends Model
         'sort_order' => 'integer',
     ];
 
-    public function roles()
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(
             Role::class,

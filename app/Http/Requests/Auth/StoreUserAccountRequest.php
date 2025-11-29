@@ -16,14 +16,21 @@ class StoreUserAccountRequest extends FormRequest
 
     public function rules(): array
     {
-        $userTable = (new UserAccount)->getTable();
-        $levelTable = (new Level)->getTable();
+        $user = new UserAccount;
+        $userTable = $user->getTable();
+        $userConnection = $user->getConnectionName();
+        $qualifiedUserTable = $userConnection ? $userConnection.'.'.$userTable : $userTable;
+
+        $level = new Level;
+        $levelTable = $level->getTable();
+        $levelConnection = $level->getConnectionName();
+        $qualifiedLevelTable = $levelConnection ? $levelConnection.'.'.$levelTable : $levelTable;
 
         return [
             'name' => ['required', 'string', 'max:150'],
-            'username' => ['required', 'string', 'max:100', Rule::unique($userTable, 'username')],
-            'email' => ['nullable', 'email', 'max:150', Rule::unique($userTable, 'email')],
-            'level_id' => ['required', Rule::exists($levelTable, 'id')],
+            'username' => ['required', 'string', 'max:100', Rule::unique($qualifiedUserTable, 'username')],
+            'email' => ['nullable', 'email', 'max:150', Rule::unique($qualifiedUserTable, 'email')],
+            'level_id' => ['required', Rule::exists($qualifiedLevelTable, 'id')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'is_active' => ['nullable', 'boolean'],
         ];

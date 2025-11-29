@@ -7,102 +7,213 @@ use App\Http\Requests\Auth\UpdateLevelUserRequest;
 use App\Models\Tenant\Level;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
+use App\Services\Tenant\TenantConnectionManager;
 use App\Support\TenantContext;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Yajra\DataTables\DataTables;
 
 class LevelUserController extends Controller
 {
-    public function __construct()
+    public function __construct(protected TenantConnectionManager $tenantConnection)
     {
-        $this->middleware('permission:auth.roles.view')->only(['index', 'create', 'edit']);
-        $this->middleware('permission:auth.roles.manage')->only(['store', 'update', 'destroy']);
+        $this->middleware(function ($request, $next) {
+            if (session()->has('tenant_connection')) {
+                $this->tenantConnection->connectFromSession();
+            }
+
+            return $next($request);
+        });
+
+        $this->middleware('permission:auth.roles.view')->only('index');
+        $this->middleware('permission:auth.roles.manage')->only(['store', 'update', 'destroy', 'show']);
     }
 
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
+    {
+        if ($request->ajax()) {
+            return $this->datatable();
+        }
+
+        return view('auth.levels.index', [
+            'permissionGroups' => $this->permissionGroups(),
+            'canManage' => $this->canManageRoles(),
+        ]);
+    }
+
+    public function datatable(): JsonResponse
     {
         $levels = Level::query()
             ->withCount('users')
-            ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+            ->with(['role.permissions'])
+            ->orderBy('name');
 
-        $roles = Role::query()
-            ->whereIn('name', $levels->pluck('slug'))
-            ->with('permissions')
-            ->get()
-            ->keyBy('name');
+        return DataTables::of($levels)
+            ->addIndexColumn()
+            ->addColumn('info_card', function (Level $row): string {
+                return sprintf(
+                    '<div class="table-card">
+                        <div class="table-avatar avatar-purple">%s</div>
+                        <div class="table-card__body">
+                            <div class="table-card__title">%s</div>
+                            <ul class="table-meta">
+                                <li><span>Slug</span>%s</li>
+                                <li><span>Pengguna</span>%s</li>
+                            </ul>
+                        </div>
+                    </div>',
+                    strtoupper(Str::substr($row->name, 0, 1)),
+                    e($row->name),
+                    e($row->slug),
+                    $row->users_count
+                );
+            })
+            ->addColumn('detail_card', function (Level $row): string {
+                $description = $row->description ?: 'Belum ada deskripsi';
 
-        return view('auth.levels.index', [
-            'levels' => $levels,
-            'roles' => $roles,
-        ]);
+                return sprintf(
+                    '<div class="table-stack">
+                        <p class="mb-0">%s</p>
+                    </div>',
+                    e($description)
+                );
+            })
+            ->addColumn('permission_badges', function (Level $row): string {
+                $permissions = $row->role?->permissions ?? collect();
+
+                if ($permissions->isEmpty()) {
+                    return '<span class="text-muted small">Belum ada permission</span>';
+                }
+
+                $badges = $permissions->map(function ($permission) {
+                    return '<span class="badge bg-label-primary mb-1 me-1">'.e(Str::headline($permission->name)).'</span>';
+                })->implode('');
+
+                return '<div class="d-flex flex-wrap">'.$badges.'</div>';
+            })
+            ->addColumn('action', function (Level $row) {
+                if (! $this->canManageRoles()) {
+                    return '<span class="text-muted small">Tidak ada akses</span>';
+                }
+
+                $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editLevel('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
+                $deleteBtn = '<button type="button" class="btn btn-sm btn-icon btn-danger" onclick="hapusLevel('.$row->id.')" title="Hapus"><i class="bx bx-trash"></i></button>';
+
+                return $editBtn.' '.$deleteBtn;
+            })
+            ->rawColumns(['info_card', 'detail_card', 'permission_badges', 'action'])
+            ->make(true);
     }
 
-    public function create(): View
-    {
-        return view('auth.levels.create', [
-            'permissionGroups' => $this->permissionGroups(),
-        ]);
-    }
-
-    public function store(StoreLevelUserRequest $request): RedirectResponse
+    public function store(StoreLevelUserRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $connection = (new Level)->getConnectionName();
 
-        DB::transaction(function () use ($data) {
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $level = $this->persistLevel(new Level, $data);
             $this->syncRole($level, $data['permissions'] ?? []);
-        });
 
-        return redirect()->route('auth.levels.index')->with('status', 'Level user berhasil dibuat.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Level user berhasil dibuat.',
+                'data' => $level,
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan level user.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
-    public function edit(Level $level): View
+    public function show(Level $level): JsonResponse
     {
         $role = $this->findOrCreateRoleForLevel($level);
 
-        return view('auth.levels.edit', [
-            'level' => $level,
-            'permissionGroups' => $this->permissionGroups(),
-            'selectedPermissions' => $role?->permissions->pluck('name')->all() ?? [],
+        return response()->json([
+            'success' => true,
+            'data' => $level,
+            'permissions' => $role?->permissions->pluck('name') ?? collect(),
         ]);
     }
 
-    public function update(UpdateLevelUserRequest $request, Level $level): RedirectResponse
+    public function update(UpdateLevelUserRequest $request, Level $level): JsonResponse
     {
         $data = $request->validated();
+        $connection = $level->getConnectionName();
 
-        DB::transaction(function () use ($data, $level) {
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $originalSlug = $level->slug;
             $this->persistLevel($level, $data);
             $this->syncRole($level, $data['permissions'] ?? [], $originalSlug);
-        });
 
-        return redirect()->route('auth.levels.index')->with('status', 'Level user berhasil diperbarui.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Level user berhasil diperbarui.',
+                'data' => $level,
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui level user.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
-    public function destroy(Level $level): RedirectResponse
+    public function destroy(Level $level): JsonResponse
     {
-        if ($level->is_default) {
-            return back()->withErrors(['level' => 'Level default tidak dapat dihapus.']);
-        }
-
         if ($level->users()->exists()) {
-            return back()->withErrors(['level' => 'Level masih digunakan oleh pengguna aktif.']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Level masih digunakan oleh pengguna aktif.',
+            ], 422);
         }
 
-        DB::transaction(function () use ($level) {
+        $connection = $level->getConnectionName();
+
+        DB::connection($connection)->beginTransaction();
+
+        try {
             $role = Role::query()->firstWhere('name', $level->slug);
             $level->delete();
             $role?->delete();
-        });
 
-        return redirect()->route('auth.levels.index')->with('status', 'Level user berhasil dihapus.');
+            DB::connection($connection)->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Level user berhasil dihapus.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection($connection)->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus level user.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     protected function permissionGroups(): Collection
@@ -127,17 +238,10 @@ class LevelUserController extends Controller
 
     protected function persistLevel(Level $level, array $data): Level
     {
-        if (($data['is_default'] ?? false) === true) {
-            Level::query()
-                ->when($level->exists, fn ($query) => $query->whereKeyNot($level->getKey()))
-                ->update(['is_default' => false]);
-        }
-
         $level->fill([
             'name' => $data['name'],
             'slug' => $data['slug'],
             'description' => $data['description'] ?? null,
-            'is_default' => $data['is_default'] ?? false,
         ])->save();
 
         return $level;
@@ -175,5 +279,13 @@ class LevelUserController extends Controller
         }
 
         return $role;
+    }
+
+    protected function canManageRoles(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        return $user?->can('auth.roles.manage') ?? false;
     }
 }

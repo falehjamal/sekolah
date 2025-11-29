@@ -3,8 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
-use function Stancl\Tenancy\tenant;
+use RuntimeException;
+use Stancl\Tenancy\Facades\Tenancy;
 
 return new class extends Migration
 {
@@ -12,10 +12,9 @@ return new class extends Migration
     {
         Schema::create($this->tableName('tb_level'), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('name', 100);
+            $table->string('slug', 100)->unique();
             $table->text('description')->nullable();
-            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }
@@ -27,7 +26,7 @@ return new class extends Migration
 
     protected function tableName(string $base): string
     {
-        $tenantId = tenant('id');
+        $tenantId = Tenancy::getTenant()?->getTenantKey();
 
         if (! $tenantId) {
             throw new RuntimeException('Tenant belum disiapkan untuk migrasi.');

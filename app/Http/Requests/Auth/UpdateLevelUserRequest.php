@@ -17,10 +17,18 @@ class UpdateLevelUserRequest extends FormRequest
 
     public function rules(): array
     {
-        $level = $this->route('level');
-        $levelId = $level ? $level->getKey() : null;
-        $levelTable = (new Level)->getTable();
-        $permissionTable = (new Permission)->getTable();
+        $routeLevel = $this->route('level');
+        $levelId = $routeLevel ? $routeLevel->getKey() : null;
+
+        $levelModel = new Level;
+        $levelTable = $levelModel->getTable();
+        $levelConnection = $levelModel->getConnectionName();
+        $qualifiedLevelTable = $levelConnection ? $levelConnection.'.'.$levelTable : $levelTable;
+
+        $permissionModel = new Permission;
+        $permissionTable = $permissionModel->getTable();
+        $permissionConnection = $permissionModel->getConnectionName();
+        $qualifiedPermissionTable = $permissionConnection ? $permissionConnection.'.'.$permissionTable : $permissionTable;
 
         return [
             'name' => ['required', 'string', 'max:150'],
@@ -28,12 +36,11 @@ class UpdateLevelUserRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:150',
-                Rule::unique($levelTable, 'slug')->ignore($levelId),
+                Rule::unique($qualifiedLevelTable, 'slug')->ignore($levelId),
             ],
             'description' => ['nullable', 'string'],
-            'is_default' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string', Rule::exists($permissionTable, 'name')],
+            'permissions.*' => ['string', Rule::exists($qualifiedPermissionTable, 'name')],
         ];
     }
 
@@ -43,7 +50,6 @@ class UpdateLevelUserRequest extends FormRequest
 
         $this->merge([
             'slug' => $slugSource ? Str::slug($slugSource) : null,
-            'is_default' => $this->boolean('is_default'),
         ]);
     }
 }

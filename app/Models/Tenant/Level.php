@@ -6,6 +6,7 @@ use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Level extends Model
 {
@@ -20,15 +21,15 @@ class Level extends Model
         'name',
         'slug',
         'description',
-        'is_default',
-    ];
-
-    protected $casts = [
-        'is_default' => 'boolean',
     ];
 
     public function users(): HasMany
     {
         return $this->hasMany(UserAccount::class, 'level_id');
+    }
+
+    public function role(): HasOne
+    {
+        return $this->hasOne(Role::class, 'name', 'slug');
     }
 }

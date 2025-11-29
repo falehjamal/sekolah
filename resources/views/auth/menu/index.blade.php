@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Pengguna')
+@section('title', 'Manajemen Menu')
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -38,8 +38,12 @@
     font-size: 1.05rem;
     flex-shrink: 0;
 }
-.avatar-indigo {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+.avatar-teal {
+    background: linear-gradient(135deg, #0ba360, #3cba92);
+}
+.table-card__title {
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 .table-meta {
     list-style: none;
@@ -89,25 +93,25 @@
         <div class="card">
             <div class="card-header flex-wrap gap-3 d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 class="mb-1">Daftar Pengguna</h5>
-                    <p class="text-muted mb-0 small">Kelola akun dashboard tenant dan hak aksesnya.</p>
+                    <h5 class="mb-1">Manajemen Menu</h5>
+                    <p class="text-muted mb-0 small">Atur struktur menu, permission, dan akses role.</p>
                 </div>
                 @if ($canManage)
-                    <button type="button" class="btn btn-primary" onclick="tambahUser()">
-                        <i class="bx bx-plus me-1"></i> Pengguna Baru
+                    <button type="button" class="btn btn-primary" onclick="tambahMenu()">
+                        <i class="bx bx-plus me-1"></i> Menu Baru
                     </button>
                 @endif
             </div>
             <div class="card-body">
                 <div class="table-responsive text-nowrap">
-                    <table class="table table-striped table-modern" id="tableUser">
+                    <table class="table table-striped table-modern" id="tableMenu">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>Informasi</th>
+                                <th>Menu</th>
                                 <th>Detail</th>
-                                <th>Role</th>
-                                <th width="10%">Status</th>
+                                <th>Permission & Role</th>
+                                <th width="12%">Status</th>
                                 <th width="12%">Aksi</th>
                             </tr>
                         </thead>
@@ -119,40 +123,28 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalUser" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalMenu" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUserTitle">Pengguna Baru</h5>
+                <h5 class="modal-title" id="modalMenuTitle">Menu Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formUser">
+            <form id="formMenu">
                 <div class="modal-body">
-                    <input type="hidden" id="user_id" name="user_id">
+                    <input type="hidden" id="menu_id" name="menu_id">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label">Nama Menu <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" required>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="nama@email.com">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="level_id" class="form-label">Level <span class="text-danger">*</span></label>
-                            <select class="form-select" id="level_id" name="level_id" required>
-                                <option value="">Pilih level</option>
-                                @foreach ($levels as $level)
-                                    <option value="{{ $level->id }}">{{ $level->name }}</option>
+                            <label for="parent_id" class="form-label">Parent Menu</label>
+                            <select class="form-select" id="parent_id" name="parent_id">
+                                <option value="">-- Menu Utama --</option>
+                                @foreach ($menuOptions as $option)
+                                    <option value="{{ $option->id }}">{{ $option->name }}</option>
                                 @endforeach
                             </select>
                             <div class="invalid-feedback"></div>
@@ -160,26 +152,58 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Password <small class="text-muted">(isi saat membuat / ganti)</small></label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter">
+                            <label for="route_name" class="form-label">Route Name</label>
+                            <input type="text" class="form-control" id="route_name" name="route_name" placeholder="contoh: auth.users.index">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
-                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                            <label for="icon" class="form-label">Icon (Class)</label>
+                            <input type="text" class="form-control" id="icon" name="icon" placeholder="contoh: bx bx-user">
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
-                    <div class="form-check form-switch mb-3">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="sort_order" class="form-label">Urutan</label>
+                            <input type="number" min="0" class="form-control" id="sort_order" name="sort_order" value="0">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="guard_name" class="form-label">Guard</label>
+                            <input type="text" class="form-control" id="guard_name" name="guard_name" value="web">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="permission_name" class="form-label">Permission</label>
+                            <select class="form-select" id="permission_name" name="permission_name">
+                                <option value="">-- Opsional --</option>
+                                @foreach ($permissions as $permission)
+                                    <option value="{{ $permission->name }}">{{ $permission->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role_ids" class="form-label">Role Akses</label>
+                        <select class="form-select" id="role_ids" name="role_ids[]" multiple size="4">
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback"></div>
+                        <small class="text-muted">Kosongkan bila menu tidak dibatasi role.</small>
+                    </div>
+                    <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                        <label class="form-check-label" for="is_active">Aktifkan pengguna</label>
+                        <label class="form-check-label" for="is_active">Aktif</label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSimpanUser" @if (! $canManage) disabled @endif>
-                        <span class="spinner-border spinner-border-sm d-none" id="loadingSpinnerUser"></span>
-                        <span id="btnTextUser">Simpan</span>
+                    <button type="submit" class="btn btn-primary" id="btnSimpanMenu" @if (! $canManage) disabled @endif>
+                        <span class="spinner-border spinner-border-sm d-none" id="loadingSpinnerMenu"></span>
+                        <span id="btnTextMenu">Simpan</span>
                     </button>
                 </div>
             </form>
@@ -211,15 +235,15 @@
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script>
-const userBaseUrl = "{{ url('autentikasi/user') }}";
-let userTable;
+const menuBaseUrl = "{{ url('autentikasi/menu') }}";
+let menuTable;
 
 $(document).ready(function() {
-    userTable = $('#tableUser').DataTable({
+    menuTable = $('#tableMenu').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
-            url: "{{ route('auth.users.index') }}",
+            url: "{{ route('auth.menus.index') }}",
             type: 'GET'
         },
         dom: "<'datatable-top d-flex flex-wrap align-items-center justify-content-between mb-3'<'d-flex align-items-center gap-2'l><'datatable-search'f>>" +
@@ -228,9 +252,9 @@ $(document).ready(function() {
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
             { data: 'info_card', name: 'name', orderable: false, searchable: true },
-            { data: 'detail_card', name: 'email', orderable: false, searchable: true },
-            { data: 'role_badges', name: 'roles.name', orderable: false, searchable: false },
-            { data: 'status_badge', name: 'is_active', orderable: false, searchable: false, width: '10%' },
+            { data: 'detail_card', name: 'parent_id', orderable: false, searchable: false },
+            { data: 'permission_card', name: 'permission_name', orderable: false, searchable: false },
+            { data: 'status_badge', name: 'is_active', orderable: false, searchable: false, width: '12%' },
             { data: 'action', name: 'action', orderable: false, searchable: false, width: '12%' }
         ],
         language: {
@@ -239,65 +263,74 @@ $(document).ready(function() {
         }
     });
 
-    $('#formUser').on('submit', function(e) {
+    $('#formMenu').on('submit', function(e) {
         e.preventDefault();
-        simpanUser();
+        simpanMenu();
     });
 });
 
-function tambahUser() {
-    $('#modalUserTitle').text('Pengguna Baru');
-    $('#formUser')[0].reset();
-    $('#user_id').val('');
-    $('#is_active').prop('checked', true);
+function tambahMenu() {
+    $('#modalMenuTitle').text('Menu Baru');
+    $('#formMenu')[0].reset();
+    $('#menu_id').val('');
+    $('#role_ids option').prop('selected', false);
     clearValidation();
-    $('#modalUser').modal('show');
+    $('#modalMenu').modal('show');
 }
 
-function editUser(id) {
+function editMenu(id) {
     clearValidation();
     showLoading();
 
     $.ajax({
-        url: `${userBaseUrl}/${id}`,
+        url: `${menuBaseUrl}/${id}`,
         type: 'GET',
         success: function(response) {
             hideLoading();
             if (response.success) {
                 const data = response.data;
-                $('#modalUserTitle').text('Edit Pengguna');
-                $('#user_id').val(data.id);
+                const roleIds = response.role_ids ?? [];
+
+                $('#modalMenuTitle').text('Edit Menu');
+                $('#menu_id').val(data.id);
                 $('#name').val(data.name);
-                $('#username').val(data.username);
-                $('#email').val(data.email);
-                $('#level_id').val(data.level_id);
-                $('#password').val('');
-                $('#password_confirmation').val('');
+                $('#parent_id').val(data.parent_id);
+                $('#route_name').val(data.route_name);
+                $('#icon').val(data.icon);
+                $('#sort_order').val(data.sort_order);
+                $('#permission_name').val(data.permission_name);
+                $('#guard_name').val(data.guard_name ?? 'web');
                 $('#is_active').prop('checked', data.is_active);
-                $('#modalUser').modal('show');
+                $('#role_ids option').prop('selected', false);
+                roleIds.forEach(id => {
+                    $(`#role_ids option[value="${id}"]`).prop('selected', true);
+                });
+                $('#modalMenu').modal('show');
             } else {
                 showToast('error', 'Error', response.message);
             }
         },
         error: function() {
             hideLoading();
-            showToast('error', 'Error', 'Gagal mengambil data pengguna');
+            showToast('error', 'Error', 'Gagal mengambil data menu');
         }
     });
 }
 
-function simpanUser() {
-    const userId = $('#user_id').val();
-    const url = userId ? `${userBaseUrl}/${userId}` : "{{ route('auth.users.store') }}";
-    const method = userId ? 'PUT' : 'POST';
+function simpanMenu() {
+    const menuId = $('#menu_id').val();
+    const url = menuId ? `${menuBaseUrl}/${menuId}` : "{{ route('auth.menus.store') }}";
+    const method = menuId ? 'PUT' : 'POST';
 
     const formData = {
         name: $('#name').val(),
-        username: $('#username').val(),
-        email: $('#email').val(),
-        level_id: $('#level_id').val(),
-        password: $('#password').val(),
-        password_confirmation: $('#password_confirmation').val(),
+        parent_id: $('#parent_id').val(),
+        route_name: $('#route_name').val(),
+        icon: $('#icon').val(),
+        sort_order: $('#sort_order').val(),
+        guard_name: $('#guard_name').val(),
+        permission_name: $('#permission_name').val(),
+        role_ids: $('#role_ids').val(),
         is_active: $('#is_active').is(':checked') ? 1 : 0
     };
 
@@ -314,8 +347,8 @@ function simpanUser() {
         success: function(response) {
             setBtnLoading(false);
             if (response.success) {
-                $('#modalUser').modal('hide');
-                userTable.ajax.reload();
+                $('#modalMenu').modal('hide');
+                menuTable.ajax.reload();
                 showToast('success', 'Berhasil', response.message);
             } else {
                 showToast('error', 'Error', response.message);
@@ -333,15 +366,15 @@ function simpanUser() {
     });
 }
 
-function hapusUser(id) {
-    if (! confirm('Hapus pengguna ini?')) {
+function hapusMenu(id) {
+    if (! confirm('Hapus menu ini?')) {
         return;
     }
 
     showLoading();
 
     $.ajax({
-        url: `${userBaseUrl}/${id}`,
+        url: `${menuBaseUrl}/${id}`,
         type: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -349,7 +382,7 @@ function hapusUser(id) {
         success: function(response) {
             hideLoading();
             if (response.success) {
-                userTable.ajax.reload();
+                menuTable.ajax.reload();
                 showToast('success', 'Berhasil', response.message);
             } else {
                 showToast('error', 'Error', response.message);
@@ -357,7 +390,7 @@ function hapusUser(id) {
         },
         error: function() {
             hideLoading();
-            showToast('error', 'Error', 'Gagal menghapus pengguna');
+            showToast('error', 'Error', 'Gagal menghapus menu');
         }
     });
 }
@@ -395,13 +428,13 @@ function clearValidation() {
 
 function setBtnLoading(loading) {
     if (loading) {
-        $('#loadingSpinnerUser').removeClass('d-none');
-        $('#btnTextUser').text('Menyimpan...');
-        $('#btnSimpanUser').prop('disabled', true);
+        $('#loadingSpinnerMenu').removeClass('d-none');
+        $('#btnTextMenu').text('Menyimpan...');
+        $('#btnSimpanMenu').prop('disabled', true);
     } else {
-        $('#loadingSpinnerUser').addClass('d-none');
-        $('#btnTextUser').text('Simpan');
-        $('#btnSimpanUser').prop('disabled', false);
+        $('#loadingSpinnerMenu').addClass('d-none');
+        $('#btnTextMenu').text('Simpan');
+        $('#btnSimpanMenu').prop('disabled', false);
     }
 }
 
@@ -414,3 +447,4 @@ function hideLoading() {
 }
 </script>
 @endpush
+
