@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
+use App\Http\Controllers\Tenant\MataPelajaranController;
 use App\Http\Controllers\Tenant\OrangtuaController;
 use App\Http\Controllers\Tenant\SiswaController;
 use App\Http\Controllers\Tenant\SppController;
@@ -32,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('jurusan', JurusanController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('orangtua', OrangtuaController::class);
+    Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('spp', SppController::class);
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
     Route::resource('siswa', SiswaController::class);
