@@ -29,6 +29,7 @@ class Siswa extends Model
         'alamat',
         'kelas_id',
         'jurusan_id',
+        'spp_id',
         'no_hp',
         'status',
     ];
@@ -50,6 +51,11 @@ class Siswa extends Model
     public function orangtua(): HasMany
     {
         return $this->hasMany(Orangtua::class, 'siswa_id');
+    }
+
+    public function spp(): BelongsTo
+    {
+        return $this->belongsTo(Spp::class, 'spp_id');
     }
 
     public function getJkLengkapAttribute(): string

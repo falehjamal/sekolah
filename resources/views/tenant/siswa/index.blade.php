@@ -111,7 +111,7 @@
     <div class="col-12">
         <div class="card">
             @php
-                $disableSiswaForm = $jurusanList->isEmpty() || $kelasList->isEmpty();
+                $disableSiswaForm = $jurusanList->isEmpty() || $kelasList->isEmpty() || $sppList->isEmpty();
             @endphp
             <div class="card-header flex-wrap gap-3 d-flex justify-content-between align-items-center">
                 <div>
@@ -132,6 +132,9 @@
                             @endif
                             @if ($kelasList->isEmpty())
                                 <li>Belum ada data kelas. Tambahkan melalui menu Kelas.</li>
+                            @endif
+                            @if ($sppList->isEmpty())
+                                <li>Belum ada data SPP. Tambahkan melalui menu SPP.</li>
                             @endif
                         </ul>
                     </div>
@@ -232,6 +235,18 @@
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="spp_id" class="form-label">SPP <span class="text-danger">*</span></label>
+                            <select class="form-select select2" id="spp_id" name="spp_id" data-placeholder="Pilih SPP" required>
+                                <option value="">Pilih SPP</option>
+                                @foreach ($sppList as $spp)
+                                    <option value="{{ $spp->id }}">
+                                        {{ $spp->nama ?? 'SPP' }} - Rp {{ number_format($spp->nominal, 2, ',', '.') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -298,7 +313,8 @@ let isEditMode = false;
 $(document).ready(function() {
     const select2Config = {
         '#jurusan_id': 'Pilih Jurusan',
-        '#kelas_id': 'Pilih Kelas'
+        '#kelas_id': 'Pilih Kelas',
+        '#spp_id': 'Pilih SPP'
     };
 
     Object.entries(select2Config).forEach(([selector, placeholder]) => {
@@ -364,6 +380,7 @@ function tambahData() {
     $('#siswa_id').val('');
     $('#jurusan_id').val('').trigger('change');
     $('#kelas_id').val('').trigger('change');
+    $('#spp_id').val('').trigger('change');
     clearValidation();
     $('#modalForm').modal('show');
 }
@@ -392,6 +409,7 @@ function editData(id) {
                 $('#alamat').val(data.alamat);
                 $('#kelas_id').val(data.kelas_id ?? '').trigger('change');
                 $('#jurusan_id').val(data.jurusan_id ?? '').trigger('change');
+                $('#spp_id').val(data.spp_id ?? '').trigger('change');
                 $('#no_hp').val(data.no_hp);
                 $('#status').val(data.status);
 
@@ -422,6 +440,7 @@ function simpanData() {
         alamat: $('#alamat').val(),
         kelas_id: $('#kelas_id').val(),
         jurusan_id: $('#jurusan_id').val(),
+        spp_id: $('#spp_id').val(),
         no_hp: $('#no_hp').val(),
         status: $('#status').val()
     };

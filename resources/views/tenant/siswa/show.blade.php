@@ -67,6 +67,16 @@
                         <small class="text-muted text-uppercase">Status</small>
                         <p class="mb-0">{!! $siswa->status_badge !!}</p>
                     </div>
+                    <div class="col-md-6">
+                        <small class="text-muted text-uppercase">SPP</small>
+                        <p class="fw-semibold mb-0">
+                            @if ($siswa->spp)
+                                {{ $siswa->spp->nama ?? 'SPP' }} - Rp {{ number_format($siswa->spp->nominal, 2, ',', '.') }}
+                            @else
+                                -
+                            @endif
+                        </p>
+                    </div>
                     <div class="col-12">
                         <small class="text-muted text-uppercase d-block mb-1">Alamat</small>
                         <p class="fw-semibold mb-0">{{ $siswa->alamat }}</p>

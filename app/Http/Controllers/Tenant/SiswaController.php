@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant\Jurusan;
 use App\Models\Tenant\Kelas;
 use App\Models\Tenant\Siswa;
+use App\Models\Tenant\Spp;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,15 +44,20 @@ class SiswaController extends Controller
             ->orderBy('nama_kelas')
             ->get(['id', 'nama_kelas', 'tingkat']);
 
+        $sppList = Spp::query()
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'nominal', 'status']);
+
         return view('tenant.siswa.index', [
             'jurusanList' => $jurusanList,
             'kelasList' => $kelasList,
+            'sppList' => $sppList,
         ]);
     }
 
     public function datatable(): JsonResponse
     {
-        $siswa = Siswa::query()->with(['jurusan', 'kelas']);
+        $siswa = Siswa::query()->with(['jurusan', 'kelas', 'spp']);
 
         return DataTables::of($siswa)
             ->addIndexColumn()
@@ -77,6 +83,8 @@ class SiswaController extends Controller
                     : '-';
 
                 $contact = $row->no_hp ?: '-';
+                $sppName = $row->spp?->nama ?? 'Belum diatur';
+                $sppNominal = $row->spp ? 'Rp '.number_format((float) $row->spp->nominal, 2, ',', '.') : '-';
 
                 return '
                     <div class="table-stack">
@@ -84,6 +92,8 @@ class SiswaController extends Controller
                             <li><span>Tempat</span>'.$row->tempat_lahir.'</li>
                             <li><span>Tanggal</span>'.$tanggal.'</li>
                             <li><span>Kontak</span>'.$contact.'</li>
+                            <li><span>SPP</span>'.$sppName.'</li>
+                            <li><span>Nominal</span>'.$sppNominal.'</li>
                         </ul>
                     </div>';
             })
@@ -124,6 +134,7 @@ class SiswaController extends Controller
 
         $jurusanTable = (new Jurusan)->getTable();
         $kelasTable = (new Kelas)->getTable();
+        $sppTable = (new Spp)->getTable();
 
         $payloadFields = [
             'nis',
@@ -135,6 +146,7 @@ class SiswaController extends Controller
             'alamat',
             'kelas_id',
             'jurusan_id',
+            'spp_id',
             'no_hp',
             'status',
         ];
@@ -149,6 +161,7 @@ class SiswaController extends Controller
             'alamat' => 'required|string',
             'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
             'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
+            'spp_id' => 'required|integer|exists:'.$connection.'.'.$sppTable.',id',
             'no_hp' => 'nullable|string|max:20',
             'status' => 'required|in:aktif,alumni,keluar',
         ], [
@@ -167,6 +180,8 @@ class SiswaController extends Controller
             'kelas_id.exists' => 'Kelas tidak valid',
             'jurusan_id.required' => 'Jurusan harus dipilih',
             'jurusan_id.exists' => 'Jurusan tidak valid',
+            'spp_id.required' => 'SPP harus dipilih',
+            'spp_id.exists' => 'SPP tidak valid',
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
         ]);
@@ -205,7 +220,7 @@ class SiswaController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $siswa = Siswa::with(['jurusan', 'kelas'])->findOrFail($id);
+            $siswa = Siswa::with(['jurusan', 'kelas', 'spp'])->findOrFail($id);
 
             return response()->json([
                 'success' => true,
@@ -221,7 +236,7 @@ class SiswaController extends Controller
 
     public function detail(Siswa $siswa): View
     {
-        $siswa->load(['jurusan', 'kelas', 'orangtua']);
+        $siswa->load(['jurusan', 'kelas', 'spp', 'orangtua']);
 
         return view('tenant.siswa.show', [
             'siswa' => $siswa,
@@ -238,6 +253,7 @@ class SiswaController extends Controller
             $jurusanTable = (new Jurusan)->getTable();
 
             $kelasTable = (new Kelas)->getTable();
+            $sppTable = (new Spp)->getTable();
 
             $payloadFields = [
                 'nis',
@@ -253,6 +269,21 @@ class SiswaController extends Controller
                 'status',
             ];
 
+            $payloadFields = [
+                'nis',
+                'nisn',
+                'nama',
+                'jk',
+                'tempat_lahir',
+                'tanggal_lahir',
+                'alamat',
+                'kelas_id',
+                'jurusan_id',
+                'spp_id',
+                'no_hp',
+                'status',
+            ];
+
             $validator = Validator::make($request->all(), [
                 'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis,'.$id,
                 'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn,'.$id,
@@ -263,6 +294,7 @@ class SiswaController extends Controller
                 'alamat' => 'required|string',
                 'kelas_id' => 'required|integer|exists:'.$connection.'.'.$kelasTable.',id',
                 'jurusan_id' => 'required|integer|exists:'.$connection.'.'.$jurusanTable.',id',
+                'spp_id' => 'required|integer|exists:'.$connection.'.'.$sppTable.',id',
                 'no_hp' => 'nullable|string|max:20',
                 'status' => 'required|in:aktif,alumni,keluar',
             ], [
@@ -281,6 +313,8 @@ class SiswaController extends Controller
                 'kelas_id.exists' => 'Kelas tidak valid',
                 'jurusan_id.required' => 'Jurusan harus dipilih',
                 'jurusan_id.exists' => 'Jurusan tidak valid',
+                'spp_id.required' => 'SPP harus dipilih',
+                'spp_id.exists' => 'SPP tidak valid',
                 'status.required' => 'Status harus dipilih',
                 'status.in' => 'Status tidak valid',
             ]);
