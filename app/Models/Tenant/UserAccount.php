@@ -18,7 +18,7 @@ class UserAccount extends Authenticatable
 
     protected $connection = 'sekolah_tenant';
 
-    protected string $baseTable = 'tb_user';
+    protected string $baseTable = 'user';
 
     protected $guarded = [
         'id',

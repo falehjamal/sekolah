@@ -16,7 +16,7 @@ class Menu extends Model
 
     protected $connection = 'sekolah_tenant';
 
-    protected string $baseTable = 'tb_menu';
+    protected string $baseTable = 'menu';
 
     protected $fillable = [
         'parent_id',

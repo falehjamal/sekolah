@@ -15,7 +15,7 @@ class Level extends Model
 
     protected $connection = 'sekolah_tenant';
 
-    protected string $baseTable = 'tb_level';
+    protected string $baseTable = 'level';
 
     protected $fillable = [
         'name',
