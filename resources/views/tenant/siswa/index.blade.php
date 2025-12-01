@@ -188,6 +188,17 @@
                         <input type="text" class="form-control" id="nama" name="nama" placeholder="Masukkan nama lengkap" required>
                         <div class="invalid-feedback"></div>
                     </div>
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Akun Pengguna</label>
+                        <select class="form-select select2" id="user_id" name="user_id" data-placeholder="Pilih Akun Pengguna">
+                            <option value="">Pilih Akun</option>
+                            @foreach ($userAccounts as $account)
+                                <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->username }})</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback"></div>
+                        <small class="text-muted">Opsional: hubungkan siswa dengan akun login yang sudah ada.</small>
+                    </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="jk" class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
@@ -314,7 +325,8 @@ $(document).ready(function() {
     const select2Config = {
         '#jurusan_id': 'Pilih Jurusan',
         '#kelas_id': 'Pilih Kelas',
-        '#spp_id': 'Pilih SPP'
+        '#spp_id': 'Pilih SPP',
+        '#user_id': 'Pilih Akun Pengguna'
     };
 
     Object.entries(select2Config).forEach(([selector, placeholder]) => {
@@ -381,6 +393,7 @@ function tambahData() {
     $('#jurusan_id').val('').trigger('change');
     $('#kelas_id').val('').trigger('change');
     $('#spp_id').val('').trigger('change');
+    $('#user_id').val('').trigger('change');
     clearValidation();
     $('#modalForm').modal('show');
 }
@@ -410,6 +423,7 @@ function editData(id) {
                 $('#kelas_id').val(data.kelas_id ?? '').trigger('change');
                 $('#jurusan_id').val(data.jurusan_id ?? '').trigger('change');
                 $('#spp_id').val(data.spp_id ?? '').trigger('change');
+                $('#user_id').val(data.user_id ?? '').trigger('change');
                 $('#no_hp').val(data.no_hp);
                 $('#status').val(data.status);
 
@@ -431,6 +445,7 @@ function simpanData() {
     const method = siswaId ? 'PUT' : 'POST';
 
     const formData = {
+        user_id: $('#user_id').val(),
         nis: $('#nis').val(),
         nisn: $('#nisn').val(),
         nama: $('#nama').val(),

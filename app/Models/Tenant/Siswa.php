@@ -20,6 +20,7 @@ class Siswa extends Model
     protected string $baseTable = 'siswa';
 
     protected $fillable = [
+        'user_id',
         'nis',
         'nisn',
         'nama',
@@ -56,6 +57,11 @@ class Siswa extends Model
     public function spp(): BelongsTo
     {
         return $this->belongsTo(Spp::class, 'spp_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(UserAccount::class, 'user_id');
     }
 
     public function getJkLengkapAttribute(): string

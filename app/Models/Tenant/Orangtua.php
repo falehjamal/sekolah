@@ -20,6 +20,7 @@ class Orangtua extends Model
 
     protected $fillable = [
         'siswa_id',
+        'user_id',
         'nama',
         'hubungan',
         'no_hp',
@@ -30,5 +31,10 @@ class Orangtua extends Model
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(Siswa::class, 'siswa_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(UserAccount::class, 'user_id');
     }
 }

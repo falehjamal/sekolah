@@ -7,6 +7,7 @@ use App\Models\Tenant\Jurusan;
 use App\Models\Tenant\Kelas;
 use App\Models\Tenant\Siswa;
 use App\Models\Tenant\Spp;
+use App\Models\Tenant\UserAccount;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -48,16 +49,21 @@ class SiswaController extends Controller
             ->orderBy('nama')
             ->get(['id', 'nama', 'nominal', 'status']);
 
+        $userAccounts = UserAccount::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'username']);
+
         return view('tenant.siswa.index', [
             'jurusanList' => $jurusanList,
             'kelasList' => $kelasList,
             'sppList' => $sppList,
+            'userAccounts' => $userAccounts,
         ]);
     }
 
     public function datatable(): JsonResponse
     {
-        $siswa = Siswa::query()->with(['jurusan', 'kelas', 'spp']);
+        $siswa = Siswa::query()->with(['jurusan', 'kelas', 'spp', 'user']);
 
         return DataTables::of($siswa)
             ->addIndexColumn()
@@ -137,6 +143,7 @@ class SiswaController extends Controller
         $sppTable = (new Spp)->getTable();
 
         $payloadFields = [
+            'user_id',
             'nis',
             'nisn',
             'nama',
@@ -151,6 +158,10 @@ class SiswaController extends Controller
             'status',
         ];
 
+        $request->merge([
+            'user_id' => $request->filled('user_id') ? $request->input('user_id') : null,
+        ]);
+
         $validator = Validator::make($request->all(), [
             'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis',
             'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn',
@@ -164,6 +175,7 @@ class SiswaController extends Controller
             'spp_id' => 'required|integer|exists:'.$connection.'.'.$sppTable.',id',
             'no_hp' => 'nullable|string|max:20',
             'status' => 'required|in:aktif,alumni,keluar',
+            'user_id' => $this->userRule(),
         ], [
             'nis.required' => 'NIS harus diisi',
             'nis.unique' => 'NIS sudah terdaftar',
@@ -184,6 +196,7 @@ class SiswaController extends Controller
             'spp_id.exists' => 'SPP tidak valid',
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
+            'user_id.exists' => 'Akun user tidak valid',
         ]);
 
         if ($validator->fails()) {
@@ -220,7 +233,7 @@ class SiswaController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $siswa = Siswa::with(['jurusan', 'kelas', 'spp'])->findOrFail($id);
+            $siswa = Siswa::with(['jurusan', 'kelas', 'spp', 'user'])->findOrFail($id);
 
             return response()->json([
                 'success' => true,
@@ -236,7 +249,7 @@ class SiswaController extends Controller
 
     public function detail(Siswa $siswa): View
     {
-        $siswa->load(['jurusan', 'kelas', 'spp', 'orangtua']);
+        $siswa->load(['jurusan', 'kelas', 'spp', 'orangtua', 'user']);
 
         return view('tenant.siswa.show', [
             'siswa' => $siswa,
@@ -256,20 +269,7 @@ class SiswaController extends Controller
             $sppTable = (new Spp)->getTable();
 
             $payloadFields = [
-                'nis',
-                'nisn',
-                'nama',
-                'jk',
-                'tempat_lahir',
-                'tanggal_lahir',
-                'alamat',
-                'kelas_id',
-                'jurusan_id',
-                'no_hp',
-                'status',
-            ];
-
-            $payloadFields = [
+                'user_id',
                 'nis',
                 'nisn',
                 'nama',
@@ -284,6 +284,10 @@ class SiswaController extends Controller
                 'status',
             ];
 
+            $request->merge([
+                'user_id' => $request->filled('user_id') ? $request->input('user_id') : null,
+            ]);
+
             $validator = Validator::make($request->all(), [
                 'nis' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nis,'.$id,
                 'nisn' => 'required|string|max:20|unique:'.$connection.'.'.$tableName.',nisn,'.$id,
@@ -297,6 +301,7 @@ class SiswaController extends Controller
                 'spp_id' => 'required|integer|exists:'.$connection.'.'.$sppTable.',id',
                 'no_hp' => 'nullable|string|max:20',
                 'status' => 'required|in:aktif,alumni,keluar',
+                'user_id' => $this->userRule(),
             ], [
                 'nis.required' => 'NIS harus diisi',
                 'nis.unique' => 'NIS sudah terdaftar',
@@ -317,6 +322,7 @@ class SiswaController extends Controller
                 'spp_id.exists' => 'SPP tidak valid',
                 'status.required' => 'Status harus dipilih',
                 'status.in' => 'Status tidak valid',
+                'user_id.exists' => 'Akun user tidak valid',
             ]);
 
             if ($validator->fails()) {
@@ -375,5 +381,15 @@ class SiswaController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    protected function userRule(): string
+    {
+        $user = new UserAccount;
+        $userTable = $user->getTable();
+        $userConnection = $user->getConnectionName();
+        $qualifiedUserTable = $userConnection ? $userConnection.'.'.$userTable : $userTable;
+
+        return 'nullable|integer|exists:'.$qualifiedUserTable.',id';
     }
 }

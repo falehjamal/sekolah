@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tenant;
 
 use App\Models\Tenant\Orangtua;
 use App\Models\Tenant\Siswa;
+use App\Models\Tenant\UserAccount;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrangtuaRequest extends FormRequest
@@ -22,8 +23,15 @@ class StoreOrangtuaRequest extends FormRequest
             ? $connection.'.'.$siswaTable
             : $siswaTable;
 
+        $userTable = (new UserAccount)->getTable();
+        $userConnection = (new UserAccount)->getConnectionName();
+        $qualifiedUserTable = $userConnection
+            ? $userConnection.'.'.$userTable
+            : $userTable;
+
         return [
             'siswa_id' => 'required|integer|exists:'.$siswaQualified.',id',
+            'user_id' => 'nullable|integer|exists:'.$qualifiedUserTable.',id',
             'nama' => 'required|string|max:150',
             'hubungan' => 'required|in:ayah,ibu,wali',
             'no_hp' => 'nullable|string|max:50',
@@ -43,6 +51,14 @@ class StoreOrangtuaRequest extends FormRequest
             'hubungan.in' => 'Hubungan tidak valid',
             'no_hp.max' => 'No HP maksimal 50 karakter',
             'pekerjaan.max' => 'Pekerjaan maksimal 100 karakter',
+            'user_id.exists' => 'Akun user tidak valid',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'user_id' => $this->filled('user_id') ? $this->input('user_id') : null,
+        ]);
     }
 }

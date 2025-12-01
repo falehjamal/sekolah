@@ -7,6 +7,7 @@ use App\Http\Requests\Tenant\StoreOrangtuaRequest;
 use App\Http\Requests\Tenant\UpdateOrangtuaRequest;
 use App\Models\Tenant\Orangtua;
 use App\Models\Tenant\Siswa;
+use App\Models\Tenant\UserAccount;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,14 +38,19 @@ class OrangtuaController extends Controller
             ->orderBy('nama')
             ->get(['id', 'nama', 'nis']);
 
+        $userList = UserAccount::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'username']);
+
         return view('tenant.orangtua.index', [
             'siswaList' => $siswaList,
+            'userList' => $userList,
         ]);
     }
 
     public function datatable(): JsonResponse
     {
-        $orangtua = Orangtua::query()->with('siswa');
+        $orangtua = Orangtua::query()->with(['siswa', 'user']);
 
         return DataTables::of($orangtua)
             ->addIndexColumn()
@@ -88,6 +94,11 @@ class OrangtuaController extends Controller
                 $noHp = $row->no_hp ?: '-';
                 $pekerjaan = $row->pekerjaan ?: '-';
                 $alamat = $row->alamat ? e($row->alamat) : '-';
+                $userName = $row->user?->name;
+                $username = $row->user?->username;
+                $userInfo = $row->user
+                    ? sprintf('%s (%s)', e($userName), e($username ?? '-'))
+                    : '-';
 
                 return '
                     <div class="table-stack">
@@ -95,6 +106,7 @@ class OrangtuaController extends Controller
                             <li><span>No HP</span>'.$noHp.'</li>
                             <li><span>Pekerjaan</span>'.$pekerjaan.'</li>
                             <li><span>Alamat</span>'.$alamat.'</li>
+                            <li><span>Akun</span>'.$userInfo.'</li>
                         </ul>
                     </div>';
             })
@@ -137,7 +149,7 @@ class OrangtuaController extends Controller
 
     public function show(Orangtua $orangtua): JsonResponse
     {
-        $orangtua->load('siswa');
+        $orangtua->load(['siswa', 'user']);
 
         return response()->json([
             'success' => true,

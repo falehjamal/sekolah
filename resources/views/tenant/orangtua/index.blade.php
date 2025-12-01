@@ -153,6 +153,17 @@
                         </select>
                         <div class="invalid-feedback"></div>
                     </div>
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Akun Pengguna</label>
+                        <select class="form-select select2" id="user_id" name="user_id" data-placeholder="Pilih Akun Pengguna">
+                            <option value="">Pilih Akun</option>
+                            @foreach ($userList as $account)
+                                <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->username }})</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback"></div>
+                        <small class="text-muted">Opsional: hubungkan orang tua dengan akun login.</small>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="nama" class="form-label">Nama Orang Tua <span class="text-danger">*</span></label>
@@ -257,12 +268,14 @@ $(document).ready(function() {
         simpanOrangtua();
     });
 
-    $('#siswa_id').select2({
-        dropdownParent: $('#modalOrangtua'),
-        theme: 'bootstrap4',
-        placeholder: 'Pilih Siswa',
-        width: '100%',
-        allowClear: true
+    ['#siswa_id', '#user_id'].forEach(function(selector) {
+        $(selector).select2({
+            dropdownParent: $('#modalOrangtua'),
+            theme: 'bootstrap4',
+            placeholder: selector === '#siswa_id' ? 'Pilih Siswa' : 'Pilih Akun Pengguna',
+            width: '100%',
+            allowClear: true
+        });
     });
 });
 
@@ -272,6 +285,7 @@ function tambahOrangtua() {
     $('#formOrangtua')[0].reset();
     $('#orangtua_id').val('');
     $('#siswa_id').val('').trigger('change');
+    $('#user_id').val('').trigger('change');
     clearValidation();
     $('#modalOrangtua').modal('show');
 }
@@ -291,6 +305,7 @@ function editOrangtua(id) {
                 const data = response.data;
                 $('#orangtua_id').val(data.id);
                 $('#siswa_id').val(data.siswa_id).trigger('change');
+                $('#user_id').val(data.user_id ?? '').trigger('change');
                 $('#nama').val(data.nama);
                 $('#hubungan').val(data.hubungan);
                 $('#no_hp').val(data.no_hp);
@@ -314,6 +329,7 @@ function simpanOrangtua() {
     const method = orangtuaId ? 'PUT' : 'POST';
     const formData = {
         siswa_id: $('#siswa_id').val(),
+        user_id: $('#user_id').val(),
         nama: $('#nama').val(),
         hubungan: $('#hubungan').val(),
         no_hp: $('#no_hp').val(),
