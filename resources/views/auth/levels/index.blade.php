@@ -80,26 +80,6 @@
     text-transform: uppercase;
     font-size: 0.72rem;
 }
-.permissions-grid {
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.75rem;
-    padding: 1rem;
-    max-height: 260px;
-    overflow-y: auto;
-}
-.permissions-grid__group {
-    margin-bottom: 1rem;
-}
-.permissions-grid__group:last-child {
-    margin-bottom: 0;
-}
-.permissions-grid__title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #8c8fa5;
-    margin-bottom: 0.5rem;
-}
 .menu-tree {
     border: 1px solid var(--bs-border-color);
     border-radius: 0.75rem;
@@ -119,10 +99,6 @@
 }
 </style>
 @endpush
-
-@php
-    use Illuminate\Support\Str;
-@endphp
 
 @section('content')
 <div class="row">
@@ -186,30 +162,6 @@
                         <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tuliskan informasi tambahan level"></textarea>
                         <div class="invalid-feedback"></div>
                     </div>
-                    <div class="mb-2 d-flex align-items-center justify-content-between">
-                        <label class="form-label mb-0">Permissions</label>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllPermissions(true)">Pilih Semua</button>
-                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="toggleAllPermissions(false)">Bersihkan</button>
-                        </div>
-                    </div>
-                    <div class="permissions-grid" id="permissionsContainer">
-                        @foreach ($permissionGroups as $group => $permissions)
-                            <div class="permissions-grid__group">
-                                <div class="permissions-grid__title">{{ $group }}</div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach ($permissions as $permission)
-                                        @php($permissionId = 'permission-'.Str::slug($permission->name))
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input permission-checkbox" type="checkbox" id="{{ $permissionId }}" value="{{ $permission->name }}" name="permissions[]">
-                                            <label class="form-check-label" for="{{ $permissionId }}">{{ Str::headline($permission->name) }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="text-danger small mt-2" id="permissionsError"></div>
                     <div class="mt-4">
                         <div class="mb-2 d-flex align-items-center justify-content-between">
                             <label class="form-label mb-0">Menu Sidebar</label>
@@ -334,8 +286,6 @@ function tambahLevel() {
     $('#formLevel')[0].reset();
     $('#level_id').val('');
     clearValidation();
-    $('.permission-checkbox').prop('checked', false);
-    $('#permissionsError').text('');
     clearMenuSelection();
     $('#modalLevel').modal('show');
 }
@@ -351,7 +301,6 @@ function editLevel(id) {
             hideLoading();
             if (response.success) {
                 const data = response.data;
-                const permissions = response.permissions ?? [];
                 const menus = response.menus ?? [];
 
                 $('#modalLevelTitle').text('Edit Level User');
@@ -359,11 +308,6 @@ function editLevel(id) {
                 $('#name').val(data.name);
                 $('#slug').val(data.slug);
                 $('#description').val(data.description);
-                $('.permission-checkbox').prop('checked', false);
-                permissions.forEach(permission => {
-                    $(`.permission-checkbox[value="${permission}"]`).prop('checked', true);
-                });
-                $('#permissionsError').text('');
                 setMenuSelection(menus);
                 $('#menusError').text('');
                 $('#modalLevel').modal('show');
@@ -392,7 +336,6 @@ function simpanLevel() {
     };
 
     clearValidation();
-    $('#permissionsError').text('');
     $('#menusError').text('');
     setBtnLoading(true);
 
@@ -417,9 +360,6 @@ function simpanLevel() {
             setBtnLoading(false);
             if (xhr.status === 422) {
                 displayValidationErrors(xhr.responseJSON.errors);
-                if (xhr.responseJSON.errors?.permissions) {
-                    $('#permissionsError').text(xhr.responseJSON.errors.permissions[0]);
-                }
                 if (xhr.responseJSON.errors?.menu_ids) {
                     $('#menusError').text(xhr.responseJSON.errors.menu_ids[0]);
                 }
@@ -458,10 +398,6 @@ function hapusLevel(id) {
             showToast('error', 'Error', 'Gagal menghapus level');
         }
     });
-}
-
-function toggleAllPermissions(state) {
-    $('.permission-checkbox').prop('checked', state);
 }
 
 function toggleAllMenus(state) {
