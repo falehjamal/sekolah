@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::table('tenants', function (Blueprint $table) {
             $table->string('name')->after('id');
             $table->boolean('status')->default(true)->after('name');
-            $table->string('tenancy_db_host')->default('127.0.0.1')->after('status');
-            $table->unsignedSmallInteger('tenancy_db_port')->default(3306)->after('tenancy_db_host');
-            $table->string('tenancy_db_name')->after('tenancy_db_port');
-            $table->string('tenancy_db_username')->after('tenancy_db_name');
-            $table->string('tenancy_db_password')->after('tenancy_db_username');
+            $table->string('db_host')->default('127.0.0.1')->after('status');
+            $table->unsignedSmallInteger('port')->default(3306)->after('db_host');
+            $table->string('db_name')->after('port');
+            $table->string('db_user')->after('db_name');
+            $table->string('db_pass')->after('db_user');
         });
     }
 
@@ -31,11 +31,11 @@ return new class extends Migration
             $table->dropColumn([
                 'name',
                 'status',
-                'tenancy_db_host',
-                'tenancy_db_port',
-                'tenancy_db_name',
-                'tenancy_db_username',
-                'tenancy_db_password',
+                'db_host',
+                'port',
+                'db_name',
+                'db_user',
+                'db_pass',
             ]);
         });
     }

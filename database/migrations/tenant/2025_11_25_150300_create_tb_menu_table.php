@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create($this->tableName('tb_menu'), function (Blueprint $table) {
+        Schema::create($this->tableName('menu'), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->string('name');
@@ -24,14 +24,14 @@ return new class extends Migration
 
             $table->foreign('parent_id')
                 ->references('id')
-                ->on($this->tableName('tb_menu'))
+                ->on($this->tableName('menu'))
                 ->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists($this->tableName('tb_menu'));
+        Schema::dropIfExists($this->tableName('menu'));
     }
 
     protected function tableName(string $base): string

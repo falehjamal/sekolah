@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create($this->tableName('tb_user'), function (Blueprint $table) {
+        Schema::create($this->tableName('user'), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('level_id');
             $table->string('name');
@@ -24,14 +24,14 @@ return new class extends Migration
 
             $table->foreign('level_id')
                 ->references('id')
-                ->on($this->tableName('tb_level'))
+                ->on($this->tableName('level'))
                 ->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists($this->tableName('tb_user'));
+        Schema::dropIfExists($this->tableName('user'));
     }
 
     protected function tableName(string $base): string

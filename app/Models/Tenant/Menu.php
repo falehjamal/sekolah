@@ -48,7 +48,7 @@ class Menu extends Model
     {
         return $this->belongsToMany(
             Role::class,
-            $this->resolveTenantTable('tb_menu_role'),
+            $this->resolveTenantTable('menu_role'),
             'menu_id',
             'role_id'
         );

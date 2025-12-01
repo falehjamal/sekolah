@@ -20,7 +20,7 @@ class TenantUserExampleSeeder extends Seeder
 
         $connection = DB::connection('tenant_seed_1');
 
-        $connection->table('tb_level_1')->updateOrInsert(
+        $connection->table('level_1')->updateOrInsert(
             ['slug' => 'administrator'],
             [
                 'name' => 'Administrator',
@@ -30,7 +30,7 @@ class TenantUserExampleSeeder extends Seeder
             ]
         );
 
-        $levelId = $connection->table('tb_level_1')
+        $levelId = $connection->table('level_1')
             ->where('slug', 'administrator')
             ->value('id');
 
@@ -40,7 +40,7 @@ class TenantUserExampleSeeder extends Seeder
             return;
         }
 
-        $connection->table('tb_user_1')->updateOrInsert(
+        $connection->table('user_1')->updateOrInsert(
             ['username' => 'admin'],
             [
                 'level_id' => $levelId,

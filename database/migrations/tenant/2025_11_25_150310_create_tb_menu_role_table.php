@@ -10,16 +10,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create($this->tableName('tb_menu_role'), function (Blueprint $table) {
+        Schema::create($this->tableName('menu_role'), function (Blueprint $table) {
             $table->unsignedBigInteger('menu_id');
             $table->unsignedBigInteger('role_id');
             $table->timestamps();
 
-            $table->primary(['menu_id', 'role_id'], 'tb_menu_role_primary');
+            $table->primary(['menu_id', 'role_id'], 'menu_role_primary');
 
             $table->foreign('menu_id')
                 ->references('id')
-                ->on($this->tableName('tb_menu'))
+                ->on($this->tableName('menu'))
                 ->cascadeOnDelete();
 
             $table->foreign('role_id')
@@ -31,7 +31,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists($this->tableName('tb_menu_role'));
+        Schema::dropIfExists($this->tableName('menu_role'));
     }
 
     protected function tableName(string $base): string

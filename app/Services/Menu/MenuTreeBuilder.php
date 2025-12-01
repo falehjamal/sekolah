@@ -23,12 +23,17 @@ class MenuTreeBuilder
             return collect();
         }
 
+        $user->loadMissing('roles:id,name');
+        $userRoleNames = $user->roles->pluck('name')
+            ->map(static fn ($name) => (string) $name)
+            ->all();
+
         $tree = $this->cache()
             ->remember($this->cacheKey($tenantId), now()->addHours(6), function () {
                 return $this->buildTree();
             });
 
-        return $this->filterTree(collect($tree), $user)->values();
+        return $this->filterTree(collect($tree), $user, $userRoleNames)->values();
     }
 
     public function flushTenantCache(?int $tenantId = null): void
@@ -45,6 +50,7 @@ class MenuTreeBuilder
     protected function buildTree(): array
     {
         $menus = Menu::query()
+            ->with('roles:id,name')
             ->select(['id', 'parent_id', 'name', 'route_name', 'icon', 'sort_order', 'permission_name'])
             ->where('is_active', true)
             ->orderBy('parent_id')
@@ -61,18 +67,22 @@ class MenuTreeBuilder
         return $this->mapChildren($grouped, null)->all();
     }
 
-    protected function filterTree(Collection $tree, UserAccount $user): Collection
+    protected function filterTree(Collection $tree, UserAccount $user, array $userRoleNames): Collection
     {
         return $tree
-            ->map(function (array $item) use ($user) {
-                $children = $this->filterTree(collect($item['children'] ?? []), $user);
+            ->map(function (array $item) use ($user, $userRoleNames) {
+                $children = $this->filterTree(collect($item['children'] ?? []), $user, $userRoleNames);
 
-                $canSee = empty($item['permission_name']) || $user->can($item['permission_name']);
+                $hasPermission = empty($item['permission_name']) || $user->can($item['permission_name']);
+                $allowedRoles = $item['role_names'] ?? [];
+                $hasRoleAccess = empty($allowedRoles) || ! empty(array_intersect($allowedRoles, $userRoleNames));
+                $canSee = $hasPermission && $hasRoleAccess;
 
                 if (! $canSee && $children->isEmpty()) {
                     return null;
                 }
 
+                unset($item['role_names']);
                 $item['children'] = $children->values()->all();
 
                 return $item;
@@ -97,6 +107,7 @@ class MenuTreeBuilder
                     'route_name' => $menu->route_name,
                     'icon' => $menu->icon ?: 'bx bx-circle',
                     'permission_name' => $menu->permission_name,
+                    'role_names' => $menu->roles->pluck('name')->map(static fn ($name) => (string) $name)->all(),
                     'children' => $this->mapChildren($grouped, $menu->id)->all(),
                 ];
             })

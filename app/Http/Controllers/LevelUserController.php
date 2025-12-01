@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\StoreLevelUserRequest;
 use App\Http\Requests\Auth\UpdateLevelUserRequest;
 use App\Models\Tenant\Level;
+use App\Models\Tenant\Menu;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
+use App\Services\Menu\MenuTreeBuilder;
 use App\Services\Tenant\TenantConnectionManager;
 use App\Support\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -21,8 +23,10 @@ use Yajra\DataTables\DataTables;
 
 class LevelUserController extends Controller
 {
-    public function __construct(protected TenantConnectionManager $tenantConnection)
-    {
+    public function __construct(
+        protected TenantConnectionManager $tenantConnection,
+        protected MenuTreeBuilder $menuTreeBuilder
+    ) {
         $this->middleware(function ($request, $next) {
             if (session()->has('tenant_connection')) {
                 $this->tenantConnection->connectFromSession();
@@ -44,6 +48,7 @@ class LevelUserController extends Controller
         return view('auth.levels.index', [
             'permissionGroups' => $this->permissionGroups(),
             'canManage' => $this->canManageRoles(),
+            'menuTree' => $this->menuTreeOptions(),
         ]);
     }
 
@@ -120,7 +125,8 @@ class LevelUserController extends Controller
 
         try {
             $level = $this->persistLevel(new Level, $data);
-            $this->syncRole($level, $data['permissions'] ?? []);
+            $role = $this->syncRole($level, $data['permissions'] ?? []);
+            $this->syncMenuAccess($role, $data['menu_ids'] ?? []);
 
             DB::connection($connection)->commit();
 
@@ -143,11 +149,13 @@ class LevelUserController extends Controller
     public function show(Level $level): JsonResponse
     {
         $role = $this->findOrCreateRoleForLevel($level);
+        $role?->loadMissing('permissions:name', 'menus:id');
 
         return response()->json([
             'success' => true,
             'data' => $level,
             'permissions' => $role?->permissions->pluck('name') ?? collect(),
+            'menus' => $role?->menus->pluck('id') ?? collect(),
         ]);
     }
 
@@ -161,7 +169,8 @@ class LevelUserController extends Controller
         try {
             $originalSlug = $level->slug;
             $this->persistLevel($level, $data);
-            $this->syncRole($level, $data['permissions'] ?? [], $originalSlug);
+            $role = $this->syncRole($level, $data['permissions'] ?? [], $originalSlug);
+            $this->syncMenuAccess($role, $data['menu_ids'] ?? []);
 
             DB::connection($connection)->commit();
 
@@ -236,6 +245,46 @@ class LevelUserController extends Controller
         );
     }
 
+    protected function menuTreeOptions(): Collection
+    {
+        $menus = Menu::query()
+            ->select(['id', 'parent_id', 'name', 'route_name', 'icon', 'sort_order'])
+            ->where('is_active', true)
+            ->orderBy('parent_id')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        if ($menus->isEmpty()) {
+            return collect();
+        }
+
+        $grouped = $menus->groupBy('parent_id');
+
+        return $this->mapMenuOptions($grouped, null);
+    }
+
+    protected function mapMenuOptions(Collection $grouped, ?int $parentId): Collection
+    {
+        return $grouped
+            ->get($parentId, collect())
+            ->sortBy(function (Menu $menu) {
+                $order = str_pad((string) $menu->sort_order, 5, '0', STR_PAD_LEFT);
+
+                return $order.'-'.$menu->name;
+            })
+            ->map(function (Menu $menu) use ($grouped) {
+                return [
+                    'id' => (int) $menu->id,
+                    'name' => $menu->name,
+                    'route_name' => $menu->route_name,
+                    'icon' => $menu->icon ?: null,
+                    'children' => $this->mapMenuOptions($grouped, $menu->id)->values()->all(),
+                ];
+            })
+            ->values();
+    }
+
     protected function persistLevel(Level $level, array $data): Level
     {
         $level->fill([
@@ -247,7 +296,7 @@ class LevelUserController extends Controller
         return $level;
     }
 
-    protected function syncRole(Level $level, array $permissions, ?string $originalSlug = null): void
+    protected function syncRole(Level $level, array $permissions, ?string $originalSlug = null): Role
     {
         $role = $this->findOrCreateRoleForLevel($level, $originalSlug);
 
@@ -257,6 +306,21 @@ class LevelUserController extends Controller
         }
 
         $role->syncPermissions($permissions);
+
+        return $role;
+    }
+
+    protected function syncMenuAccess(Role $role, array $menuIds): void
+    {
+        $menuIds = collect($menuIds)
+            ->filter(static fn ($id) => is_numeric($id))
+            ->map(static fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $role->menus()->sync($menuIds);
+        $this->menuTreeBuilder->flushTenantCache();
     }
 
     protected function findOrCreateRoleForLevel(Level $level, ?string $previousSlug = null): Role

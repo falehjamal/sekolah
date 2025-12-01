@@ -100,6 +100,23 @@
     color: #8c8fa5;
     margin-bottom: 0.5rem;
 }
+.menu-tree {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.menu-tree__node {
+    margin-bottom: 0.75rem;
+}
+.menu-tree__children {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+.menu-tree__label {
+    font-weight: 600;
+}
 </style>
 @endpush
 
@@ -193,6 +210,23 @@
                         @endforeach
                     </div>
                     <div class="text-danger small mt-2" id="permissionsError"></div>
+                    <div class="mt-4">
+                        <div class="mb-2 d-flex align-items-center justify-content-between">
+                            <label class="form-label mb-0">Menu Sidebar</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllMenus(true)">Pilih Semua</button>
+                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="toggleAllMenus(false)">Bersihkan</button>
+                            </div>
+                        </div>
+                        @if ($menuTree->isNotEmpty())
+                            <div class="menu-tree" id="menuTreeContainer">
+                                @include('auth.levels.partials.menu-tree', ['items' => $menuTree, 'depth' => 0])
+                            </div>
+                        @else
+                            <p class="text-muted mb-0">Belum ada menu yang dikonfigurasi. Silakan atur melalui halaman menu.</p>
+                        @endif
+                        <div class="text-danger small mt-2" id="menusError"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -232,6 +266,10 @@
 <script>
 const levelBaseUrl = "{{ url('autentikasi/level-user') }}";
 let levelTable;
+const menuTreeData = @json($menuTree->toArray());
+const menuParentMap = {};
+const menuChildrenMap = {};
+buildMenuRelations(menuTreeData);
 
 $(document).ready(function() {
     levelTable = $('#tableLevel').DataTable({
@@ -267,6 +305,17 @@ $(document).ready(function() {
             $('#slug').val(slugify($(this).val()));
         }
     });
+
+    $(document).on('change', '.menu-checkbox', function() {
+        const menuId = parseInt($(this).val(), 10);
+        if (Number.isNaN(menuId)) {
+            return;
+        }
+
+        const isChecked = $(this).is(':checked');
+        toggleChildMenus(menuId, isChecked);
+        updateParentState(menuId);
+    });
 });
 
 function slugify(string) {
@@ -287,6 +336,7 @@ function tambahLevel() {
     clearValidation();
     $('.permission-checkbox').prop('checked', false);
     $('#permissionsError').text('');
+    clearMenuSelection();
     $('#modalLevel').modal('show');
 }
 
@@ -302,6 +352,7 @@ function editLevel(id) {
             if (response.success) {
                 const data = response.data;
                 const permissions = response.permissions ?? [];
+                const menus = response.menus ?? [];
 
                 $('#modalLevelTitle').text('Edit Level User');
                 $('#level_id').val(data.id);
@@ -313,6 +364,8 @@ function editLevel(id) {
                     $(`.permission-checkbox[value="${permission}"]`).prop('checked', true);
                 });
                 $('#permissionsError').text('');
+                setMenuSelection(menus);
+                $('#menusError').text('');
                 $('#modalLevel').modal('show');
             } else {
                 showToast('error', 'Error', response.message);
@@ -334,11 +387,13 @@ function simpanLevel() {
         name: $('#name').val(),
         slug: $('#slug').val(),
         description: $('#description').val(),
-        permissions: $('.permission-checkbox:checked').map(function() { return $(this).val(); }).get()
+        permissions: $('.permission-checkbox:checked').map(function() { return $(this).val(); }).get(),
+        menu_ids: $('.menu-checkbox:checked').map(function() { return $(this).val(); }).get()
     };
 
     clearValidation();
     $('#permissionsError').text('');
+    $('#menusError').text('');
     setBtnLoading(true);
 
     $.ajax({
@@ -364,6 +419,9 @@ function simpanLevel() {
                 displayValidationErrors(xhr.responseJSON.errors);
                 if (xhr.responseJSON.errors?.permissions) {
                     $('#permissionsError').text(xhr.responseJSON.errors.permissions[0]);
+                }
+                if (xhr.responseJSON.errors?.menu_ids) {
+                    $('#menusError').text(xhr.responseJSON.errors.menu_ids[0]);
                 }
                 showToast('error', 'Validasi Error', 'Periksa kembali form Anda');
             } else {
@@ -406,6 +464,71 @@ function toggleAllPermissions(state) {
     $('.permission-checkbox').prop('checked', state);
 }
 
+function toggleAllMenus(state) {
+    $('.menu-checkbox').prop('checked', state);
+    $('#menusError').text('');
+
+    if (!state) {
+        return;
+    }
+
+    Object.keys(menuParentMap).forEach(id => {
+        const menuId = parseInt(id, 10);
+        if (!Number.isNaN(menuId)) {
+            updateParentState(menuId);
+        }
+    });
+}
+
+function clearMenuSelection() {
+    $('.menu-checkbox').prop('checked', false);
+    $('#menusError').text('');
+}
+
+function setMenuSelection(menuIds) {
+    clearMenuSelection();
+    (menuIds || []).forEach(id => {
+        const checkbox = $(`.menu-checkbox[value="${id}"]`);
+        checkbox.prop('checked', true);
+        updateParentState(id);
+    });
+}
+
+function buildMenuRelations(items, parentId = null) {
+    (items || []).forEach(item => {
+        menuParentMap[item.id] = parentId;
+        const children = item.children || [];
+        menuChildrenMap[item.id] = children.map(child => child.id);
+        buildMenuRelations(children, item.id);
+    });
+}
+
+function toggleChildMenus(menuId, state) {
+    const children = menuChildrenMap[menuId] || [];
+    children.forEach(childId => {
+        const checkbox = $(`.menu-checkbox[value="${childId}"]`);
+        checkbox.prop('checked', state);
+        toggleChildMenus(childId, state);
+    });
+}
+
+function updateParentState(menuId) {
+    const parentId = menuParentMap[menuId];
+    if (!parentId) {
+        return;
+    }
+
+    const siblings = menuChildrenMap[parentId] || [];
+    if (!siblings.length) {
+        updateParentState(parentId);
+        return;
+    }
+
+    const hasCheckedSibling = siblings.some(id => $(`.menu-checkbox[value="${id}"]`).is(':checked'));
+    $(`.menu-checkbox[value="${parentId}"]`).prop('checked', hasCheckedSibling);
+    updateParentState(parentId);
+}
+
 function showToast(type, title, message) {
     const toastEl = document.getElementById('toastNotification');
     const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
@@ -435,6 +558,7 @@ function displayValidationErrors(errors) {
 function clearValidation() {
     $('.form-control, .form-select').removeClass('is-invalid');
     $('.invalid-feedback').text('');
+    $('#menusError').text('');
 }
 
 function setBtnLoading(loading) {

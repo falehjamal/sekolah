@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\UpdateMenuRequest;
 use App\Models\Tenant\Menu;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
+use App\Services\Menu\MenuTreeBuilder;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -17,8 +18,10 @@ use Yajra\DataTables\DataTables;
 
 class MenuController extends Controller
 {
-    public function __construct(protected TenantConnectionManager $tenantConnection)
-    {
+    public function __construct(
+        protected TenantConnectionManager $tenantConnection,
+        protected MenuTreeBuilder $menuTreeBuilder
+    ) {
         $this->middleware(function ($request, $next) {
             if (session()->has('tenant_connection')) {
                 $this->tenantConnection->connectFromSession();
@@ -140,6 +143,7 @@ class MenuController extends Controller
         try {
             $menu = Menu::query()->create($request->validated());
             $menu->roles()->sync($request->input('role_ids', []));
+            $this->flushMenuCache();
 
             DB::connection($connection)->commit();
 
@@ -186,6 +190,7 @@ class MenuController extends Controller
         try {
             $menu->update($request->validated());
             $menu->roles()->sync($request->input('role_ids', []));
+            $this->flushMenuCache();
 
             DB::connection($connection)->commit();
 
@@ -221,6 +226,7 @@ class MenuController extends Controller
         try {
             $menu->roles()->detach();
             $menu->delete();
+            $this->flushMenuCache();
 
             DB::connection($connection)->commit();
 
@@ -245,5 +251,10 @@ class MenuController extends Controller
         $user = Auth::user();
 
         return $user?->can('auth.menus.manage') ?? false;
+    }
+
+    protected function flushMenuCache(): void
+    {
+        $this->menuTreeBuilder->flushTenantCache();
     }
 }

@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create($this->tableName('tb_level'), function (Blueprint $table) {
+        Schema::create($this->tableName('level'), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name', 100);
             $table->string('slug', 100)->unique();
@@ -21,7 +21,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists($this->tableName('tb_level'));
+        Schema::dropIfExists($this->tableName('level'));
     }
 
     protected function tableName(string $base): string

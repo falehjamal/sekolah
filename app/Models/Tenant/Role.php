@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
@@ -14,4 +15,16 @@ class Role extends SpatieRole
     protected $guarded = [];
 
     protected $guard_name = 'web';
+
+    public function menus(): BelongsToMany
+    {
+        $menu = new Menu;
+
+        return $this->belongsToMany(
+            Menu::class,
+            $menu->resolveTenantTable('menu_role'),
+            'role_id',
+            'menu_id'
+        );
+    }
 }
