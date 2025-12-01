@@ -42,13 +42,13 @@ class AppLayoutComposer
             function () use ($user) {
                 $user->loadMissing('level:id,name');
 
-                $avatar = $user->getAttribute('avatar_url');
+                $initial = strtoupper(mb_substr($user->name ?? 'U', 0, 1));
 
                 return [
                     'name' => $user->name,
                     'role' => $user->level?->name ?? 'Pengguna',
                     'email' => $user->email,
-                    'avatar' => $avatar ?: asset('template/assets/img/avatars/1.png'),
+                    'initial' => $initial,
                 ];
             }
         );

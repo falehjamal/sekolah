@@ -37,6 +37,27 @@
     <link rel="stylesheet" href="{{ asset('template/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/assets/vendor/css/pages/page-auth.css') }}" />
 
+    <style>
+      .avatar-initials {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #5f72ff, #9921e8);
+        text-transform: uppercase;
+      }
+
+      .avatar-initials.avatar-xl {
+        width: 90px;
+        height: 90px;
+        font-size: 2rem;
+      }
+    </style>
+
     <script src="{{ asset('template/assets/vendor/js/helpers.js') }}"></script>
     <script src="{{ asset('template/assets/js/config.js') }}"></script>
 
@@ -66,12 +87,8 @@
                 @php($layoutUser = $layoutUser ?? null)
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                   <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img
-                        src="{{ $layoutUser['avatar'] ?? asset('template/assets/img/avatars/1.png') }}"
-                        alt="Avatar"
-                        class="w-px-40 h-auto rounded-circle"
-                      />
+                    <div class="avatar avatar-online avatar-initials">
+                      {{ $layoutUser['initial'] ?? 'U' }}
                     </div>
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -79,12 +96,8 @@
                       <a class="dropdown-item" href="javascript:void(0);">
                         <div class="d-flex">
                           <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img
-                                src="{{ $layoutUser['avatar'] ?? asset('template/assets/img/avatars/1.png') }}"
-                                alt="Avatar"
-                                class="w-px-40 h-auto rounded-circle"
-                              />
+                            <div class="avatar avatar-online avatar-initials">
+                              {{ $layoutUser['initial'] ?? 'U' }}
                             </div>
                           </div>
                           <div class="flex-grow-1">

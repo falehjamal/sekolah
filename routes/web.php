@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardSiswaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\MenuController;
@@ -17,6 +18,7 @@ Auth::routes(['register' => false, 'reset' => false, 'verify' => false]);
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/siswa', DashboardSiswaController::class)->name('dashboard.siswa');
 
     Route::prefix('autentikasi')->group(function () {
         Route::resource('level-user', LevelUserController::class)
