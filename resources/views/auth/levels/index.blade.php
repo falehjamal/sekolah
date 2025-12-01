@@ -123,7 +123,7 @@
                                 <th width="5%">No</th>
                                 <th>Informasi</th>
                                 <th>Deskripsi</th>
-                                <th>Permissions</th>
+                                <th>Menu Sidebar</th>
                                 <th width="12%">Aksi</th>
                             </tr>
                         </thead>
@@ -238,7 +238,7 @@ $(document).ready(function() {
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
             { data: 'info_card', name: 'name', orderable: false, searchable: true },
             { data: 'detail_card', name: 'description', orderable: false, searchable: true },
-            { data: 'permission_badges', name: 'role.name', orderable: false, searchable: false },
+            { data: 'menu_badges', name: 'role.name', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false, width: '12%' }
         ],
         language: {

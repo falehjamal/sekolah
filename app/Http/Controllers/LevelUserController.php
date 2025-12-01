@@ -52,7 +52,7 @@ class LevelUserController extends Controller
     {
         $levels = Level::query()
             ->withCount('users')
-            ->with(['role.permissions'])
+            ->with(['role.menus'])
             ->orderBy('name');
 
         return DataTables::of($levels)
@@ -85,15 +85,19 @@ class LevelUserController extends Controller
                     e($description)
                 );
             })
-            ->addColumn('permission_badges', function (Level $row): string {
-                $permissions = $row->role?->permissions ?? collect();
+            ->addColumn('menu_badges', function (Level $row): string {
+                $menus = ($row->role?->menus ?? collect())
+                    ->filter(static fn (Menu $menu) => $menu->parent_id !== null);
 
-                if ($permissions->isEmpty()) {
-                    return '<span class="text-muted small">Belum ada permission</span>';
+                if ($menus->isEmpty()) {
+                    return '<span class="text-muted small">Belum ada menu anak</span>';
                 }
 
-                $badges = $permissions->map(function ($permission) {
-                    return '<span class="badge bg-label-primary mb-1 me-1">'.e(Str::headline($permission->name)).'</span>';
+                $badges = $menus->map(function ($menu) {
+                    return sprintf(
+                        '<div class="badge bg-label-primary mb-1 me-1">%s</div>',
+                        e($menu->name)
+                    );
                 })->implode('');
 
                 return '<div class="d-flex flex-wrap">'.$badges.'</div>';
@@ -108,7 +112,7 @@ class LevelUserController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['info_card', 'detail_card', 'permission_badges', 'action'])
+            ->rawColumns(['info_card', 'detail_card', 'menu_badges', 'action'])
             ->make(true);
     }
 
