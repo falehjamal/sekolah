@@ -2,27 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use Symfony\Component\HttpFoundation\Request;
+use App\Models\Tenant\Guru;
+use App\Models\Tenant\Siswa;
+use App\Services\Tenant\TenantConnectionManager;
+use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function __construct(protected TenantConnectionManager $tenantConnection)
     {
         $this->middleware(['auth', 'permission:dashboard.view']);
+        $this->middleware(function ($request, $next) {
+            if (session()->has('tenant_connection')) {
+                $this->tenantConnection->connectFromSession();
+            }
+
+            return $next($request);
+        });
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function index()
+    public function index(): View
     {
-        return view('home');
+        $studentStats = [
+            'total' => Siswa::count(),
+            'male' => Siswa::where('jk', 'l')->count(),
+            'female' => Siswa::where('jk', 'p')->count(),
+        ];
+
+        $teacherStats = [
+            'total' => Guru::count(),
+            'male' => Guru::where('jenis_kelamin', 'L')->count(),
+            'female' => Guru::where('jenis_kelamin', 'P')->count(),
+        ];
+
+        return view('home', [
+            'studentStats' => $studentStats,
+            'teacherStats' => $teacherStats,
+        ]);
     }
 }

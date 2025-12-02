@@ -10,7 +10,9 @@
                         <h5 class="card-header m-0 me-2 pb-3">Statistik Siswa</h5>
                         <div class="px-4 pb-4">
                             <p class="text-muted mb-1">Total Siswa</p>
-                            <h2 class="fw-bold mb-2">1.280</h2>
+                            <a href="{{ route('siswa.index') }}" class="text-decoration-none text-body d-inline-block">
+                                <h2 class="fw-bold mb-2">{{ number_format($studentStats['total'] ?? 0, 0, ',', '.') }}</h2>
+                            </a>
                             <small class="text-muted">Update per November 2025</small>
                             <div class="mt-4">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
@@ -32,14 +34,18 @@
                                     <span class="badge bg-label-primary p-2 me-2"><i class="bx bx-male text-primary"></i></span>
                                     <div class="d-flex flex-column text-start">
                                         <small>Laki-laki</small>
-                                        <h6 class="mb-0">640 siswa</h6>
+                                        <a href="{{ route('siswa.index') }}" class="text-decoration-none text-body">
+                                            <h6 class="mb-0">{{ number_format($studentStats['male'] ?? 0, 0, ',', '.') }} siswa</h6>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-label-info p-2 me-2"><i class="bx bx-female text-info"></i></span>
                                     <div class="d-flex flex-column text-start">
                                         <small>Perempuan</small>
-                                        <h6 class="mb-0">640 siswa</h6>
+                                        <a href="{{ route('siswa.index') }}" class="text-decoration-none text-body">
+                                            <h6 class="mb-0">{{ number_format($studentStats['female'] ?? 0, 0, ',', '.') }} siswa</h6>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -56,7 +62,9 @@
                         <h5 class="card-header m-0 me-2 pb-3">Statistik Guru</h5>
                         <div class="px-4 pb-4">
                             <p class="text-muted mb-1">Total Guru</p>
-                            <h2 class="fw-bold mb-2">86</h2>
+                            <a href="{{ route('guru.index') }}" class="text-decoration-none text-body d-inline-block">
+                                <h2 class="fw-bold mb-2">{{ number_format($teacherStats['total'] ?? 0, 0, ',', '.') }}</h2>
+                            </a>
                             <small class="text-muted">Update per November 2025</small>
                             <div class="mt-4">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
@@ -78,14 +86,18 @@
                                     <span class="badge bg-label-success p-2 me-2"><i class="bx bx-male text-success"></i></span>
                                     <div class="d-flex flex-column text-start">
                                         <small>Laki-laki</small>
-                                        <h6 class="mb-0">38 guru</h6>
+                                        <a href="{{ route('guru.index') }}" class="text-decoration-none text-body">
+                                            <h6 class="mb-0">{{ number_format($teacherStats['male'] ?? 0, 0, ',', '.') }} guru</h6>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-label-warning p-2 me-2"><i class="bx bx-female text-warning"></i></span>
                                     <div class="d-flex flex-column text-start">
                                         <small>Perempuan</small>
-                                        <h6 class="mb-0">48 guru</h6>
+                                        <a href="{{ route('guru.index') }}" class="text-decoration-none text-body">
+                                            <h6 class="mb-0">{{ number_format($teacherStats['female'] ?? 0, 0, ',', '.') }} guru</h6>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
