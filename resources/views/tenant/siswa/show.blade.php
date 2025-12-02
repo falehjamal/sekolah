@@ -44,6 +44,16 @@
                         <p class="fw-semibold mb-0">{{ $siswa->no_hp ?? '-' }}</p>
                     </div>
                     <div class="col-md-6">
+                        <small class="text-muted text-uppercase">Akun Pengguna</small>
+                        <p class="fw-semibold mb-0">
+                            @if ($siswa->user)
+                                {{ $siswa->user->name }} ({{ $siswa->user->username ?? '-' }})
+                            @else
+                                -
+                            @endif
+                        </p>
+                    </div>
+                    <div class="col-md-6">
                         <small class="text-muted text-uppercase">Kelas</small>
                         <p class="fw-semibold mb-0">
                             @if ($siswa->kelas)

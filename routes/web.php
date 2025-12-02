@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardSiswaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\Tenant\GuruController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
 use App\Http\Controllers\Tenant\MataPelajaranController;
@@ -43,6 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('orangtua', OrangtuaController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('spp', SppController::class);
+    Route::get('guru/{guru}/detail', [GuruController::class, 'detail'])->name('guru.detail');
+    Route::resource('guru', GuruController::class);
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
     Route::resource('siswa', SiswaController::class);
 });

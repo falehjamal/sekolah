@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Models\Concerns\UsesTenantTableSuffix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -40,6 +41,16 @@ class UserAccount extends Authenticatable
     public function level(): BelongsTo
     {
         return $this->belongsTo(Level::class, 'level_id');
+    }
+
+    public function siswa(): HasOne
+    {
+        return $this->hasOne(Siswa::class, 'user_id');
+    }
+
+    public function guru(): HasOne
+    {
+        return $this->hasOne(Guru::class, 'user_id');
     }
 
     public static function forTenant(int $tenantId)
