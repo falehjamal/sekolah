@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant\Guru;
+use App\Models\Tenant\Jurusan;
+use App\Models\Tenant\Kelas;
+use App\Models\Tenant\MataPelajaran;
 use App\Models\Tenant\Siswa;
 use App\Services\Tenant\TenantConnectionManager;
 use Illuminate\View\View;
@@ -35,9 +38,16 @@ class HomeController extends Controller
             'female' => Guru::where('jenis_kelamin', 'P')->count(),
         ];
 
+        $academicStats = [
+            'classes' => Kelas::count(),
+            'majors' => Jurusan::count(),
+            'subjects' => MataPelajaran::count(),
+        ];
+
         return view('home', [
             'studentStats' => $studentStats,
             'teacherStats' => $teacherStats,
+            'academicStats' => $academicStats,
         ]);
     }
 }

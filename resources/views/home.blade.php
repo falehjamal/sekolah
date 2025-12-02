@@ -119,7 +119,11 @@
                                     </span>
                                     <div class="text-start">
                                         <span class="d-block text-muted">Jumlah Kelas</span>
-                                        <h3 class="card-title text-nowrap mb-0">36</h3>
+                                        <a href="{{ route('kelas.index') }}" class="text-decoration-none text-body">
+                                            <h3 class="card-title text-nowrap mb-0">
+                                                {{ number_format($academicStats['classes'] ?? 0, 0, ',', '.') }}
+                                            </h3>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="dropdown">
@@ -147,7 +151,11 @@
                                     </span>
                                     <div class="text-start">
                                         <span class="d-block text-muted">Jumlah Kejuruan</span>
-                                        <h3 class="card-title text-nowrap mb-0">5</h3>
+                                        <a href="{{ route('jurusan.index') }}" class="text-decoration-none text-body">
+                                            <h3 class="card-title text-nowrap mb-0">
+                                                {{ number_format($academicStats['majors'] ?? 0, 0, ',', '.') }}
+                                            </h3>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="dropdown">
@@ -175,7 +183,11 @@
                                     </span>
                                     <div class="text-start">
                                         <span class="d-block text-muted">Jumlah Mata Pelajaran</span>
-                                        <h3 class="card-title text-nowrap mb-0">48</h3>
+                                        <a href="{{ route('mata-pelajaran.index') }}" class="text-decoration-none text-body">
+                                            <h3 class="card-title text-nowrap mb-0">
+                                                {{ number_format($academicStats['subjects'] ?? 0, 0, ',', '.') }}
+                                            </h3>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="dropdown">
