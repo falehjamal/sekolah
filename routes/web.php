@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardPembayaranController;
 use App\Http\Controllers\DashboardSiswaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
@@ -20,6 +21,7 @@ Auth::routes(['register' => false, 'reset' => false, 'verify' => false]);
 Route::middleware('auth')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('dashboard');
     Route::get('dashboard/siswa', DashboardSiswaController::class)->name('dashboard.siswa');
+    Route::get('dashboard-pembayaran', [DashboardPembayaranController::class, 'index'])->name('dashboard.pembayaran');
 
     Route::prefix('autentikasi')->group(function () {
         Route::resource('level-user', LevelUserController::class)
