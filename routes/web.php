@@ -12,6 +12,7 @@ use App\Http\Controllers\Tenant\MataPelajaranController;
 use App\Http\Controllers\Tenant\OrangtuaController;
 use App\Http\Controllers\Tenant\SiswaController;
 use App\Http\Controllers\Tenant\SppController;
+use App\Http\Controllers\Tenant\TagihanManualController;
 use App\Http\Controllers\UserAccountController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -50,4 +51,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('guru', GuruController::class);
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
     Route::resource('siswa', SiswaController::class);
+    Route::get('tagihan-manual/spp-info', [TagihanManualController::class, 'getSppInfo'])->name('tagihan-manual.spp-info');
+    Route::resource('tagihan-manual', TagihanManualController::class)->except(['create', 'edit']);
 });
