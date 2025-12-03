@@ -137,10 +137,13 @@
                             <tr>
                                 <th width="5%">No</th>
                                 <th>Siswa</th>
-                                <th>Detail Tagihan</th>
+                                <th>Bulan</th>
+                                <th>Nominal</th>
+                                <th>Tanggal Bayar</th>
                                 <th>Metode</th>
+                                <th>Rekening</th>
                                 <th>Keterangan</th>
-                                <th width="12%">Aksi</th>
+                                <th width="10%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,6 +166,7 @@
             <form id="formTagihan">
                 <div class="modal-body">
                     <input type="hidden" id="tagihan_id" name="tagihan_id">
+                    <input type="hidden" id="petugas_id" name="petugas_id" value="{{ auth()->id() }}">
 
                     <!-- Info SPP Panel -->
                     <div class="alert alert-info d-none" id="sppInfoPanel">
@@ -230,13 +234,24 @@
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="metode_bayar" class="form-label">Metode Bayar</label>
-                            <select class="form-select" id="metode_bayar" name="metode_bayar">
+                            <label for="metode_pembayaran_id" class="form-label">Metode Pembayaran <span class="text-danger">*</span></label>
+                            <select class="form-select" id="metode_pembayaran_id" name="metode_pembayaran_id" required>
                                 <option value="">Pilih Metode</option>
-                                <option value="tunai">Tunai</option>
-                                <option value="transfer">Transfer</option>
-                                <option value="qris">QRIS</option>
-                                <option value="debit">Debit</option>
+                                @foreach ($metodePembayaranList as $metode)
+                                    <option value="{{ $metode->id }}" data-nama="{{ strtolower($metode->nama) }}">{{ $metode->nama }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="row" id="rekeningRow" style="display: none;">
+                        <div class="col-12 mb-3">
+                            <label for="rekening_id" class="form-label">Rekening Tujuan <span class="text-danger">*</span></label>
+                            <select class="form-select" id="rekening_id" name="rekening_id">
+                                <option value="">Pilih Rekening</option>
+                                @foreach ($rekeningList as $rekening)
+                                    <option value="{{ $rekening->id }}">{{ $rekening->bank }} - {{ $rekening->no_rekening }} ({{ $rekening->nama_rekening }})</option>
+                                @endforeach
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
@@ -246,13 +261,40 @@
                         <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan (opsional)"></textarea>
                         <div class="invalid-feedback"></div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSimpan">
-                        <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner"></span>
-                        <span id="btnText">Simpan</span>
-                    </button>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btnSimpan">
+                            <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner"></span>
+                            <span id="btnText">Simpan</span>
+                        </button>
+                    </div>
+
+                    <!-- History Pembayaran Section -->
+                    <div class="mt-4 d-none" id="historySection">
+                        <hr>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bx bx-history me-2 fs-5 text-primary"></i>
+                            <h6 class="mb-0">Riwayat Pembayaran Siswa</h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-hover" id="tableHistory" style="width: 100%;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th>Bulan</th>
+                                        <th>Nominal</th>
+                                        <th>Tanggal Bayar</th>
+                                        <th>Metode</th>
+                                        <th>Rekening</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -289,6 +331,7 @@
 
 <script>
 let table;
+let historyTable = null;
 let isEditMode = false;
 let sppData = null;
 
@@ -299,6 +342,35 @@ $(document).ready(function() {
         placeholder: 'Pilih Siswa',
         width: '100%',
         allowClear: true
+    });
+
+    // Initialize History DataTable
+    historyTable = $('#tableHistory').DataTable({
+        processing: true,
+        serverSide: false,
+        paging: true,
+        pageLength: 5,
+        lengthChange: false,
+        searching: false,
+        info: false,
+        autoWidth: false,
+        columns: [
+            { data: 'no', width: '5%' },
+            { data: 'bulan_format' },
+            { data: 'nominal_format' },
+            { data: 'tanggal_bayar_format' },
+            { data: 'metode' },
+            { data: 'rekening' }
+        ],
+        order: [[3, 'desc']],
+        language: {
+            processing: "Memuat...",
+            zeroRecords: "Belum ada riwayat pembayaran",
+            paginate: {
+                previous: "&laquo;",
+                next: "&raquo;"
+            }
+        }
     });
 
     // Initialize DataTable
@@ -316,11 +388,14 @@ $(document).ready(function() {
         autoWidth: false,
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
-            { data: 'siswa_info', name: 'siswa.nama', orderable: false, searchable: true },
-            { data: 'tagihan_info', name: 'bulan', orderable: false, searchable: true },
-            { data: 'metode_badge', name: 'metode_bayar', orderable: false, searchable: false },
+            { data: 'siswa_info', name: 'siswa.nama', orderable: true, searchable: true },
+            { data: 'bulan_format', name: 'bulan', orderable: true, searchable: true },
+            { data: 'nominal_format', name: 'nominal', orderable: true, searchable: false },
+            { data: 'tanggal_bayar_format', name: 'tanggal_bayar', orderable: true, searchable: false },
+            { data: 'metode_badge', name: 'metode_pembayaran_id', orderable: false, searchable: false },
+            { data: 'rekening_info', name: 'rekening_id', orderable: false, searchable: false },
             { data: 'keterangan_text', name: 'keterangan', orderable: false, searchable: true },
-            { data: 'action', name: 'action', orderable: false, searchable: false, width: '12%' }
+            { data: 'action', name: 'action', orderable: false, searchable: false, width: '10%' }
         ],
         language: {
             processing: "Memuat data...",
@@ -337,7 +412,7 @@ $(document).ready(function() {
                 previous: "Sebelumnya"
             }
         },
-        order: [[2, 'desc']]
+        order: [[4, 'desc']]
     });
 
     // Form Submit Handler
@@ -354,7 +429,25 @@ $(document).ready(function() {
     $('#bulan').on('change', function() {
         fetchSppInfo();
     });
+
+    // Handle metode pembayaran change - toggle rekening visibility
+    $('#metode_pembayaran_id').on('change', function() {
+        toggleRekeningField();
+    });
 });
+
+function toggleRekeningField() {
+    const selectedOption = $('#metode_pembayaran_id option:selected');
+    const metodeName = selectedOption.data('nama') || '';
+
+    if (metodeName === 'transfer') {
+        $('#rekeningRow').slideDown();
+        $('#rekening_id').prop('required', true);
+    } else {
+        $('#rekeningRow').slideUp();
+        $('#rekening_id').prop('required', false).val('');
+    }
+}
 
 function fetchSppInfo() {
     const siswaId = $('#siswa_id').val();
@@ -364,6 +457,13 @@ function fetchSppInfo() {
     // Reset panels
     hideSppInfoPanels();
     sppData = null;
+
+    // Fetch history if siswa is selected
+    if (siswaId) {
+        fetchHistory(siswaId, tagihanId);
+    } else {
+        hideHistory();
+    }
 
     if (!siswaId || !bulan) {
         return;
@@ -391,6 +491,50 @@ function fetchSppInfo() {
             }
         }
     });
+}
+
+function fetchHistory(siswaId, excludeId = null) {
+    $.ajax({
+        url: "{{ route('tagihan-manual.history') }}",
+        type: 'GET',
+        data: {
+            siswa_id: siswaId,
+            exclude_id: excludeId
+        },
+        success: function(response) {
+            if (response.success && response.data.length > 0) {
+                // Clear and add new data
+                historyTable.clear();
+
+                let no = 1;
+                response.data.forEach(function(item) {
+                    historyTable.row.add({
+                        no: no++,
+                        bulan_format: item.bulan_format,
+                        nominal_format: item.nominal_format,
+                        tanggal_bayar_format: item.tanggal_bayar_format,
+                        metode: item.metode_nama || '-',
+                        rekening: item.rekening_info || '-'
+                    });
+                });
+
+                historyTable.draw();
+                $('#historySection').removeClass('d-none');
+            } else {
+                hideHistory();
+            }
+        },
+        error: function() {
+            hideHistory();
+        }
+    });
+}
+
+function hideHistory() {
+    $('#historySection').addClass('d-none');
+    if (historyTable) {
+        historyTable.clear().draw();
+    }
 }
 
 function displaySppInfo(data) {
@@ -433,6 +577,9 @@ function tambahData() {
     $('#formTagihan')[0].reset();
     $('#tagihan_id').val('');
     $('#siswa_id').val('').trigger('change');
+    $('#metode_pembayaran_id').val('');
+    $('#rekening_id').val('');
+    $('#rekeningRow').hide();
 
     // Set default tanggal bayar ke hari ini
     const today = new Date().toISOString().split('T')[0];
@@ -444,6 +591,7 @@ function tambahData() {
 
     clearValidation();
     hideSppInfoPanels();
+    hideHistory();
     $('#modalForm').modal('show');
 }
 
@@ -452,6 +600,7 @@ function editData(id) {
     $('#modalFormTitle').text('Edit Tagihan Manual');
     clearValidation();
     hideSppInfoPanels();
+    hideHistory();
 
     showLoading();
 
@@ -466,8 +615,17 @@ function editData(id) {
                 $('#bulan').val(data.bulan);
                 $('#nominal').val(data.nominal);
                 $('#tanggal_bayar').val(data.tanggal_bayar);
-                $('#metode_bayar').val(data.metode_bayar);
+                $('#metode_pembayaran_id').val(data.metode_pembayaran_id ?? '');
+                $('#rekening_id').val(data.rekening_id ?? '');
                 $('#keterangan').val(data.keterangan);
+
+                // Toggle rekening visibility based on metode
+                toggleRekeningField();
+
+                // Fetch history for this siswa
+                if (data.siswa_id) {
+                    fetchHistory(data.siswa_id, data.id);
+                }
 
                 // Set siswa_id last to trigger fetchSppInfo with correct tagihan_id
                 $('#siswa_id').val(data.siswa_id ?? '').trigger('change');
@@ -513,7 +671,9 @@ function simpanData() {
         bulan: $('#bulan').val(),
         nominal: $('#nominal').val(),
         tanggal_bayar: $('#tanggal_bayar').val(),
-        metode_bayar: $('#metode_bayar').val(),
+        metode_pembayaran_id: $('#metode_pembayaran_id').val(),
+        rekening_id: $('#rekening_id').val() || null,
+        petugas_id: $('#petugas_id').val(),
         keterangan: $('#keterangan').val()
     };
 

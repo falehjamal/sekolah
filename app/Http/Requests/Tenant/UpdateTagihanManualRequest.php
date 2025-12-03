@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Tenant;
 
+use App\Models\Tenant\MetodePembayaran;
+use App\Models\Tenant\Rekening;
 use App\Models\Tenant\Siswa;
 use App\Models\Tenant\TagihanSpp;
 use Illuminate\Database\Eloquent\Model;
@@ -21,13 +23,17 @@ class UpdateTagihanManualRequest extends FormRequest
     public function rules(): array
     {
         $siswaTable = $this->qualifiedTable(new Siswa);
+        $metodeTable = $this->qualifiedTable(new MetodePembayaran);
+        $rekeningTable = $this->qualifiedTable(new Rekening);
 
         return [
             'siswa_id' => 'required|integer|exists:'.$siswaTable.',id',
             'bulan' => 'required|string|regex:/^\d{4}-\d{2}$/',
             'nominal' => 'required|numeric|min:1',
             'tanggal_bayar' => 'required|date',
-            'metode_bayar' => 'nullable|string|max:50',
+            'metode_pembayaran_id' => 'required|integer|exists:'.$metodeTable.',id',
+            'rekening_id' => 'nullable|integer|exists:'.$rekeningTable.',id',
+            'petugas_id' => 'required|integer',
             'keterangan' => 'nullable|string|max:1000',
         ];
     }
@@ -47,7 +53,9 @@ class UpdateTagihanManualRequest extends FormRequest
             'nominal.min' => 'Nominal harus lebih dari 0',
             'tanggal_bayar.required' => 'Tanggal bayar harus diisi',
             'tanggal_bayar.date' => 'Format tanggal bayar tidak valid',
-            'metode_bayar.max' => 'Metode bayar maksimal 50 karakter',
+            'metode_pembayaran_id.required' => 'Metode pembayaran harus dipilih',
+            'metode_pembayaran_id.exists' => 'Metode pembayaran tidak valid',
+            'rekening_id.exists' => 'Rekening tidak valid',
             'keterangan.max' => 'Keterangan maksimal 1000 karakter',
         ];
     }
@@ -59,7 +67,27 @@ class UpdateTagihanManualRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             $this->validateSppLimit($validator);
+            $this->validateRekeningForTransfer($validator);
         });
+    }
+
+    /**
+     * Validate that rekening is required for transfer payment
+     */
+    protected function validateRekeningForTransfer(Validator $validator): void
+    {
+        $metodePembayaranId = $this->input('metode_pembayaran_id');
+        $rekeningId = $this->input('rekening_id');
+
+        if (!$metodePembayaranId) {
+            return;
+        }
+
+        $metode = MetodePembayaran::find($metodePembayaranId);
+
+        if ($metode && strtolower($metode->nama) === 'transfer' && empty($rekeningId)) {
+            $validator->errors()->add('rekening_id', 'Rekening harus dipilih untuk pembayaran transfer');
+        }
     }
 
     /**

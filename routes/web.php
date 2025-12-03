@@ -52,5 +52,6 @@ Route::middleware('auth')->group(function () {
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
     Route::resource('siswa', SiswaController::class);
     Route::get('tagihan-manual/spp-info', [TagihanManualController::class, 'getSppInfo'])->name('tagihan-manual.spp-info');
+    Route::get('tagihan-manual/history', [TagihanManualController::class, 'history'])->name('tagihan-manual.history');
     Route::resource('tagihan-manual', TagihanManualController::class)->except(['create', 'edit']);
 });

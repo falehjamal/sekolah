@@ -19,7 +19,9 @@ class TagihanSpp extends Model
         'bulan',
         'nominal',
         'tanggal_bayar',
-        'metode_bayar',
+        'metode_pembayaran_id',
+        'rekening_id',
+        'petugas_id',
         'keterangan',
     ];
 
@@ -31,6 +33,16 @@ class TagihanSpp extends Model
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(Siswa::class, 'siswa_id');
+    }
+
+    public function metodePembayaran(): BelongsTo
+    {
+        return $this->belongsTo(MetodePembayaran::class, 'metode_pembayaran_id');
+    }
+
+    public function rekening(): BelongsTo
+    {
+        return $this->belongsTo(Rekening::class, 'rekening_id');
     }
 
     public function getBulanFormatAttribute(): string
@@ -69,12 +81,14 @@ class TagihanSpp extends Model
 
     public function getMetodeBadgeAttribute(): string
     {
-        return match (strtolower($this->metode_bayar ?? '')) {
+        $metodeName = strtolower($this->metodePembayaran?->nama ?? '');
+
+        return match ($metodeName) {
             'tunai', 'cash' => '<span class="badge bg-label-success">Tunai</span>',
             'transfer' => '<span class="badge bg-label-primary">Transfer</span>',
             'qris' => '<span class="badge bg-label-info">QRIS</span>',
             'debit' => '<span class="badge bg-label-warning">Debit</span>',
-            default => '<span class="badge bg-label-secondary">' . ($this->metode_bayar ?? '-') . '</span>',
+            default => '<span class="badge bg-label-secondary">' . ($this->metodePembayaran?->nama ?? '-') . '</span>',
         };
     }
 }

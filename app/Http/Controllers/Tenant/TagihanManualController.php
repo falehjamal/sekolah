@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\StoreTagihanManualRequest;
 use App\Http\Requests\Tenant\UpdateTagihanManualRequest;
+use App\Models\Tenant\MetodePembayaran;
+use App\Models\Tenant\Rekening;
 use App\Models\Tenant\Siswa;
 use App\Models\Tenant\TagihanSpp;
 use App\Services\Tenant\TenantConnectionManager;
@@ -39,8 +41,18 @@ class TagihanManualController extends Controller
             ->orderBy('nama')
             ->get(['id', 'nis', 'nama']);
 
+        $metodePembayaranList = MetodePembayaran::query()
+            ->orderBy('nama')
+            ->get(['id', 'nama']);
+
+        $rekeningList = Rekening::query()
+            ->orderBy('bank')
+            ->get(['id', 'bank', 'no_rekening', 'nama_rekening']);
+
         return view('tenant.tagihan-manual.index', [
             'siswaList' => $siswaList,
+            'metodePembayaranList' => $metodePembayaranList,
+            'rekeningList' => $rekeningList,
         ]);
     }
 
@@ -110,7 +122,7 @@ class TagihanManualController extends Controller
 
     public function datatable(): JsonResponse
     {
-        $tagihan = TagihanSpp::query()->with(['siswa']);
+        $tagihan = TagihanSpp::query()->with(['siswa', 'metodePembayaran', 'rekening']);
 
         return DataTables::of($tagihan)
             ->addIndexColumn()
@@ -133,29 +145,32 @@ class TagihanManualController extends Controller
                         </div>
                     </div>';
             })
-            ->addColumn('tagihan_info', function (TagihanSpp $row): string {
-                $tanggalBayar = $row->tanggal_bayar
-                    ? Carbon::parse($row->tanggal_bayar)->translatedFormat('d F Y')
+            ->addColumn('bulan_format', function (TagihanSpp $row): string {
+                return $row->bulan_format;
+            })
+            ->addColumn('nominal_format', function (TagihanSpp $row): string {
+                return '<span class="fw-semibold text-success">'.$row->nominal_format.'</span>';
+            })
+            ->addColumn('tanggal_bayar_format', function (TagihanSpp $row): string {
+                return $row->tanggal_bayar
+                    ? Carbon::parse($row->tanggal_bayar)->translatedFormat('d M Y')
                     : '-';
-
-                return '
-                    <div class="table-stack">
-                        <ul class="table-meta">
-                            <li><span>Bulan</span>'.$row->bulan_format.'</li>
-                            <li><span>Nominal</span>'.$row->nominal_format.'</li>
-                            <li><span>Tgl Bayar</span>'.$tanggalBayar.'</li>
-                        </ul>
-                    </div>';
             })
             ->addColumn('metode_badge', function (TagihanSpp $row): string {
                 return '<div class="status-pill">'.$row->metode_badge.'</div>';
             })
+            ->addColumn('rekening_info', function (TagihanSpp $row): string {
+                if (!$row->rekening) {
+                    return '<span class="text-muted">-</span>';
+                }
+                return '<small>'.$row->rekening->bank.'<br><span class="text-muted">'.$row->rekening->no_rekening.'</span></small>';
+            })
             ->addColumn('keterangan_text', function (TagihanSpp $row): string {
                 $keterangan = $row->keterangan ?? '-';
-                if (strlen($keterangan) > 50) {
-                    $keterangan = substr($keterangan, 0, 50) . '...';
+                if (strlen($keterangan) > 30) {
+                    $keterangan = substr($keterangan, 0, 30) . '...';
                 }
-                return '<span class="text-muted">'.$keterangan.'</span>';
+                return '<span class="text-muted small">'.$keterangan.'</span>';
             })
             ->addColumn('action', function (TagihanSpp $row): string {
                 $editBtn = '<button type="button" class="btn btn-sm btn-icon btn-warning" onclick="editData('.$row->id.')" title="Edit"><i class="bx bx-edit"></i></button>';
@@ -163,8 +178,61 @@ class TagihanManualController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['siswa_info', 'tagihan_info', 'metode_badge', 'keterangan_text', 'action'])
+            ->rawColumns(['siswa_info', 'nominal_format', 'metode_badge', 'rekening_info', 'keterangan_text', 'action'])
             ->make(true);
+    }
+
+    /**
+     * Get payment history for a student
+     */
+    public function history(Request $request): JsonResponse
+    {
+        $siswaId = $request->input('siswa_id');
+        $excludeId = $request->input('exclude_id');
+
+        if (!$siswaId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa harus dipilih',
+                'data' => [],
+            ]);
+        }
+
+        $query = TagihanSpp::query()
+            ->with(['metodePembayaran', 'rekening'])
+            ->where('siswa_id', $siswaId)
+            ->orderBy('created_at', 'desc');
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $history = $query->get();
+
+        $data = $history->map(function (TagihanSpp $item) {
+            return [
+                'id' => $item->id,
+                'bulan' => $item->bulan,
+                'bulan_format' => $item->bulan_format,
+                'nominal' => $item->nominal,
+                'nominal_format' => $item->nominal_format,
+                'tanggal_bayar' => $item->tanggal_bayar
+                    ? Carbon::parse($item->tanggal_bayar)->format('Y-m-d')
+                    : null,
+                'tanggal_bayar_format' => $item->tanggal_bayar
+                    ? Carbon::parse($item->tanggal_bayar)->translatedFormat('d M Y')
+                    : '-',
+                'metode_nama' => $item->metodePembayaran?->nama,
+                'rekening_info' => $item->rekening
+                    ? $item->rekening->bank . ' - ' . $item->rekening->no_rekening
+                    : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
     }
 
     public function store(StoreTagihanManualRequest $request): JsonResponse
@@ -181,7 +249,7 @@ class TagihanManualController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data tagihan berhasil ditambahkan',
-                'data' => $tagihan->load(['siswa']),
+                'data' => $tagihan->load(['siswa', 'metodePembayaran', 'rekening']),
             ]);
         } catch (\Throwable $th) {
             DB::connection($connection)->rollBack();
@@ -196,7 +264,7 @@ class TagihanManualController extends Controller
 
     public function show(TagihanSpp $tagihanManual): JsonResponse
     {
-        $tagihanManual->load(['siswa']);
+        $tagihanManual->load(['siswa', 'metodePembayaran', 'rekening']);
 
         return response()->json([
             'success' => true,
@@ -218,7 +286,7 @@ class TagihanManualController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data tagihan berhasil diperbarui',
-                'data' => $tagihanManual->load(['siswa']),
+                'data' => $tagihanManual->load(['siswa', 'metodePembayaran', 'rekening']),
             ]);
         } catch (\Throwable $th) {
             DB::connection($connection)->rollBack();
