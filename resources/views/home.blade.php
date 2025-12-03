@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
     <div class="row gy-4">
         <div class="col-12 col-lg-6">
             <div class="card h-100">
@@ -33,7 +32,7 @@
                                 <div class="d-flex align-items-center mb-3">
                                     <span class="badge bg-label-primary p-2 me-2"><i class="bx bx-male text-primary"></i></span>
                                     <div class="d-flex flex-column text-start">
-                                        <small>Laki-laki</small>
+                                        <small>L</small>
                                         <a href="{{ route('siswa.index') }}" class="text-decoration-none text-body">
                                             <h6 class="mb-0">{{ number_format($studentStats['male'] ?? 0, 0, ',', '.') }} siswa</h6>
                                         </a>
@@ -42,7 +41,7 @@
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-label-info p-2 me-2"><i class="bx bx-female text-info"></i></span>
                                     <div class="d-flex flex-column text-start">
-                                        <small>Perempuan</small>
+                                        <small>P</small>
                                         <a href="{{ route('siswa.index') }}" class="text-decoration-none text-body">
                                             <h6 class="mb-0">{{ number_format($studentStats['female'] ?? 0, 0, ',', '.') }} siswa</h6>
                                         </a>
@@ -85,7 +84,7 @@
                                 <div class="d-flex align-items-center mb-3">
                                     <span class="badge bg-label-success p-2 me-2"><i class="bx bx-male text-success"></i></span>
                                     <div class="d-flex flex-column text-start">
-                                        <small>Laki-laki</small>
+                                        <small>L</small>
                                         <a href="{{ route('guru.index') }}" class="text-decoration-none text-body">
                                             <h6 class="mb-0">{{ number_format($teacherStats['male'] ?? 0, 0, ',', '.') }} guru</h6>
                                         </a>
@@ -94,7 +93,7 @@
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-label-warning p-2 me-2"><i class="bx bx-female text-warning"></i></span>
                                     <div class="d-flex flex-column text-start">
-                                        <small>Perempuan</small>
+                                        <small>P</small>
                                         <a href="{{ route('guru.index') }}" class="text-decoration-none text-body">
                                             <h6 class="mb-0">{{ number_format($teacherStats['female'] ?? 0, 0, ',', '.') }} guru</h6>
                                         </a>
@@ -290,5 +289,4 @@
             </div>
         </div>
     </div>
-</div>
 @endsection

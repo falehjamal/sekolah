@@ -3,7 +3,6 @@
 @section('title', 'Dashboard Pembayaran | ' . config('app.name', 'Sekolah'))
 
 @section('content')
-<div class="container">
     <div class="row gy-4">
         <!-- Total Tagihan -->
         <div class="col-12 col-lg-6">
@@ -229,7 +228,6 @@
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('scripts')
@@ -247,7 +245,7 @@
     // Pemasukan SPP Chart - Bar Chart
     // --------------------------------------------------------------------
     const pemasukanChartEl = document.querySelector('#pemasukanChart');
-    
+
     if (pemasukanChartEl) {
         const pemasukanChartOptions = {
             series: [
@@ -498,7 +496,7 @@
     // Growth Chart - Radial Chart
     // --------------------------------------------------------------------
     const growthChartEl = document.querySelector('#growthChart');
-    
+
     if (growthChartEl) {
         const growthChartOptions = {
             series: [62],
