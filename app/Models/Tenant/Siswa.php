@@ -32,11 +32,13 @@ class Siswa extends Model
         'jurusan_id',
         'spp_id',
         'no_hp',
+        'tanggal_masuk',
         'status',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
+        'tanggal_masuk' => 'date',
     ];
 
     public function kelas(): BelongsTo

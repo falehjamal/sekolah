@@ -14,94 +14,208 @@
     right: 20px;
     z-index: 9999;
 }
+
+/* Modern Select2 Styling */
 .select2-container--bootstrap4 .select2-selection {
-    min-height: 38px;
-    padding: 6px 8px;
-    border-radius: 0.75rem;
+    min-height: 42px;
+    padding: 8px 12px;
+    border-radius: 0.5rem;
+    border: 1px solid #d9dee3;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.select2-container--bootstrap4 .select2-selection:focus,
+.select2-container--bootstrap4.select2-container--focus .select2-selection {
+    border-color: #696cff;
+    box-shadow: 0 0 0.25rem 0.05rem rgba(105, 108, 255, 0.1);
 }
 .select2-container--bootstrap4 .select2-selection__rendered {
     line-height: 24px;
+    color: #566a7f;
+    padding-left: 0;
 }
+.select2-container--bootstrap4 .select2-selection__placeholder {
+    color: #a1acb8;
+}
+.select2-container--bootstrap4 .select2-selection__arrow {
+    height: 40px;
+}
+.select2-container--bootstrap4 .select2-dropdown {
+    border-radius: 0.5rem;
+    border-color: #d9dee3;
+    box-shadow: 0 0.25rem 1rem rgba(161, 172, 184, 0.45);
+}
+.select2-container--bootstrap4 .select2-results__option {
+    padding: 10px 14px;
+    transition: background-color 0.15s ease;
+}
+.select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
+    background-color: #696cff;
+    color: #fff;
+}
+.select2-container--bootstrap4 .select2-results__option[aria-selected=true] {
+    background-color: rgba(105, 108, 255, 0.08);
+    color: #696cff;
+}
+.select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
+    border-radius: 0.375rem;
+    padding: 8px 12px;
+    border-color: #d9dee3;
+}
+.select2-container--bootstrap4 .select2-search--dropdown .select2-search__field:focus {
+    border-color: #696cff;
+    box-shadow: 0 0 0.25rem 0.05rem rgba(105, 108, 255, 0.1);
+}
+
+/* DataTable Modern Styling */
 .datatable-top .form-select,
 .datatable-top .form-control {
-    border-radius: 999px;
-    border-color: var(--bs-border-color);
+    border-radius: 0.5rem;
+    border-color: #d9dee3;
+    min-height: 42px;
 }
 .datatable-top .form-control {
-    padding-left: 2.25rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23888' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.414-1.415l-3.85-3.849zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10'/%3E%3C/svg%3E");
+    padding-left: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23697a8d' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.414-1.415l-3.85-3.849zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: 0.85rem center;
     background-size: 1rem;
 }
+.datatable-top .form-control:focus {
+    border-color: #696cff;
+    box-shadow: 0 0 0.25rem 0.05rem rgba(105, 108, 255, 0.1);
+}
+
+/* Table Modern Styling */
+.table-modern {
+    border-collapse: separate;
+    border-spacing: 0;
+}
 .table-modern thead th {
     text-transform: uppercase;
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
-    color: #9195a3;
-    border-bottom: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #566a7f;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e7e7e8;
+    padding: 1rem 0.75rem;
+    white-space: nowrap;
 }
 .table-modern tbody tr {
-    border-bottom: 1px solid rgba(145, 149, 163, 0.15);
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid #e7e7e8;
 }
+.table-modern tbody tr:hover {
+    background-color: rgba(105, 108, 255, 0.04);
+}
+.table-modern tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+/* Table Card Component */
 .table-card {
     display: flex;
-    gap: 1rem;
+    gap: 0.875rem;
     align-items: flex-start;
 }
 .table-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #5F72FF, #9921E8);
+    width: 44px;
+    height: 44px;
+    border-radius: 0.625rem;
+    background: linear-gradient(135deg, #696cff 0%, #8592ff 100%);
     color: #fff;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.05rem;
+    font-size: 1rem;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(105, 108, 255, 0.4);
 }
 .table-card__title {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
+    color: #566a7f;
+    margin-bottom: 0.25rem;
 }
 .table-meta {
     list-style: none;
     padding: 0;
-    margin: 0.25rem 0 0 0;
+    margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.85rem;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
 }
 .table-meta li {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    color: #697a8d;
 }
 .table-meta li span {
-    min-width: 70px;
+    min-width: 55px;
     font-weight: 600;
-    color: #8c8fa5;
+    color: #a1acb8;
     text-transform: uppercase;
-    font-size: 0.72rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.03em;
 }
 .table-stack {
-    padding: 0.75rem 0;
+    padding: 0.5rem 0;
 }
+
+/* Status Pill */
 .status-pill {
     display: inline-flex;
     align-items: center;
-    padding: 0.15rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(95, 114, 255, 0.08);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    background: rgba(105, 108, 255, 0.08);
 }
+
+/* Pagination Styling */
 .datatable-bottom .pagination {
     margin-bottom: 0;
 }
 .datatable-bottom .pagination .page-link {
-    border-radius: 10px;
-    margin: 0 0.15rem;
+    border-radius: 0.375rem;
+    margin: 0 0.125rem;
+    border: none;
+    color: #697a8d;
+    padding: 0.5rem 0.875rem;
+    transition: all 0.15s ease;
+}
+.datatable-bottom .pagination .page-link:hover {
+    background-color: rgba(105, 108, 255, 0.08);
+    color: #696cff;
+}
+.datatable-bottom .pagination .page-item.active .page-link {
+    background-color: #696cff;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(105, 108, 255, 0.4);
+}
+
+/* Form Section Divider */
+.form-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #566a7f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #696cff;
+    display: inline-block;
+}
+
+/* Button Improvements */
+.btn-icon {
+    padding: 0.4rem 0.6rem;
+    line-height: 1;
+}
+.btn-icon i {
+    font-size: 1rem;
 }
 </style>
 @endpush
@@ -266,15 +380,20 @@
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                            <select class="form-select" id="status" name="status" required>
-                                <option value="">Pilih Status</option>
-                                <option value="aktif" selected>Aktif</option>
-                                <option value="alumni">Alumni</option>
-                                <option value="keluar">Keluar</option>
-                            </select>
+                            <label for="tanggal_masuk" class="form-label">Tanggal Masuk <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" required>
                             <div class="invalid-feedback"></div>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="">Pilih Status</option>
+                            <option value="aktif" selected>Aktif</option>
+                            <option value="alumni">Alumni</option>
+                            <option value="keluar">Keluar</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -425,6 +544,7 @@ function editData(id) {
                 $('#spp_id').val(data.spp_id ?? '').trigger('change');
                 $('#user_id').val(data.user_id ?? '').trigger('change');
                 $('#no_hp').val(data.no_hp);
+                $('#tanggal_masuk').val(data.tanggal_masuk);
                 $('#status').val(data.status);
 
                 $('#modalForm').modal('show');
@@ -457,6 +577,7 @@ function simpanData() {
         jurusan_id: $('#jurusan_id').val(),
         spp_id: $('#spp_id').val(),
         no_hp: $('#no_hp').val(),
+        tanggal_masuk: $('#tanggal_masuk').val(),
         status: $('#status').val()
     };
 

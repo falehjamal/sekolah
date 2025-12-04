@@ -41,6 +41,7 @@ class UpdateSiswaRequest extends FormRequest
             'jurusan_id' => 'required|integer|exists:'.$jurusanTable.',id',
             'spp_id' => 'required|integer|exists:'.$sppTable.',id',
             'no_hp' => 'nullable|string|max:20',
+            'tanggal_masuk' => 'required|date',
             'status' => 'required|in:aktif,alumni,keluar',
         ];
     }
@@ -68,6 +69,8 @@ class UpdateSiswaRequest extends FormRequest
             'jurusan_id.exists' => 'Jurusan tidak valid',
             'spp_id.required' => 'SPP harus dipilih',
             'spp_id.exists' => 'SPP tidak valid',
+            'tanggal_masuk.required' => 'Tanggal masuk harus diisi',
+            'tanggal_masuk.date' => 'Format tanggal masuk tidak valid',
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
             'user_id.exists' => 'Akun user tidak valid',

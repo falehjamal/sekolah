@@ -16,7 +16,7 @@
                             <div class="text-start">
                                 <span class="d-block text-muted">Total Tagihan</span>
                                 <h3 class="card-title text-nowrap mb-0">
-                                    {{ number_format($stats['total_tagihan']['jumlah'] ?? 0, 0, ',', '.') }} tagihan
+                                    {{ number_format($stats['total_tagihan']['jumlah'] ?? 0, 0, ',', '.') }}
                                 </h3>
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                             <div class="text-start">
                                 <span class="d-block text-muted">SPP Lunas</span>
                                 <h3 class="card-title text-nowrap mb-0">
-                                    {{ number_format($stats['spp_lunas']['jumlah'] ?? 0, 0, ',', '.') }} tagihan
+                                    {{ number_format($stats['spp_lunas']['jumlah'] ?? 0, 0, ',', '.') }}
                                 </h3>
                             </div>
                         </div>
@@ -87,7 +87,6 @@
                             </span>
                             <div class="text-start">
                                 <span class="d-block text-muted">Total Deposit</span>
-                                <h3 class="card-title text-nowrap mb-0">Deposit</h3>
                             </div>
                         </div>
                     </div>

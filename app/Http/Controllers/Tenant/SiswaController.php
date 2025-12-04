@@ -85,13 +85,17 @@ class SiswaController extends Controller
                     </div>';
             })
             ->addColumn('detail_info', function (Siswa $row): string {
-                $tanggal = $row->tanggal_lahir
+                $tanggalLahir = $row->tanggal_lahir
                     ? Carbon::parse($row->tanggal_lahir)->translatedFormat('d F Y')
+                    : '-';
+
+                $tanggalMasuk = $row->tanggal_masuk
+                    ? Carbon::parse($row->tanggal_masuk)->translatedFormat('d M Y')
                     : '-';
 
                 $contact = $row->no_hp ?: '-';
                 $sppName = $row->spp?->nama ?? 'Belum diatur';
-                $sppNominal = $row->spp ? 'Rp '.number_format((float) $row->spp->nominal, 2, ',', '.') : '-';
+                $sppNominal = $row->spp ? 'Rp '.number_format((float) $row->spp->nominal, 0, ',', '.') : '-';
                 $userName = $row->user?->name;
                 $username = $row->user?->username;
                 $userInfo = $row->user
@@ -101,11 +105,10 @@ class SiswaController extends Controller
                 return '
                     <div class="table-stack">
                         <ul class="table-meta">
-                            <li><span>Tempat</span>'.$row->tempat_lahir.'</li>
-                            <li><span>Tanggal</span>'.$tanggal.'</li>
+                            <li><span>TTL</span>'.$row->tempat_lahir.', '.$tanggalLahir.'</li>
+                            <li><span>Masuk</span>'.$tanggalMasuk.'</li>
                             <li><span>Kontak</span>'.$contact.'</li>
-                            <li><span>SPP</span>'.$sppName.'</li>
-                            <li><span>Nominal</span>'.$sppNominal.'</li>
+                            <li><span>SPP</span>'.$sppName.' ('.$sppNominal.')</li>
                             <li><span>Akun</span>'.$userInfo.'</li>
                         </ul>
                     </div>';
