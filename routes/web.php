@@ -11,6 +11,7 @@ use App\Http\Controllers\Tenant\KelasController;
 use App\Http\Controllers\Tenant\ListTagihanSppController;
 use App\Http\Controllers\Tenant\MataPelajaranController;
 use App\Http\Controllers\Tenant\OrangtuaController;
+use App\Http\Controllers\Tenant\RekeningController;
 use App\Http\Controllers\Tenant\SiswaController;
 use App\Http\Controllers\Tenant\SppController;
 use App\Http\Controllers\Tenant\TagihanManualController;
@@ -55,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('tagihan-manual/spp-info', [TagihanManualController::class, 'getSppInfo'])->name('tagihan-manual.spp-info');
     Route::get('tagihan-manual/history', [TagihanManualController::class, 'history'])->name('tagihan-manual.history');
     Route::resource('tagihan-manual', TagihanManualController::class)->except(['create', 'edit']);
+    Route::resource('rekening', RekeningController::class)->except(['create', 'edit']);
 
     // List Tagihan SPP
     Route::get('list-tagihan-spp', [ListTagihanSppController::class, 'index'])->name('list-tagihan-spp.index');
