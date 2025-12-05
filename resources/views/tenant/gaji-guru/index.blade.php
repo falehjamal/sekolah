@@ -290,15 +290,6 @@
                                 <div class="invalid-feedback"></div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Total Gaji</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="text" class="form-control fw-bold text-primary" id="total_gaji_display" readonly value="0">
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -473,32 +464,12 @@ $(document).ready(function() {
         order: []
     });
 
-    // Calculate total gaji on input change
-    $('#gaji_pokok, #uang_makan, #uang_transport, #tunjangan_jabatan, #tunjangan_lain').on('input', function() {
-        calculateTotalGaji();
-    });
-
     // Form Submit Handler
     $('#formGajiGuru').on('submit', function(e) {
         e.preventDefault();
         simpanData();
     });
 });
-
-function calculateTotalGaji() {
-    const gajiPokok = parseFloat($('#gaji_pokok').val()) || 0;
-    const uangMakan = parseFloat($('#uang_makan').val()) || 0;
-    const uangTransport = parseFloat($('#uang_transport').val()) || 0;
-    const tunjanganJabatan = parseFloat($('#tunjangan_jabatan').val()) || 0;
-    const tunjanganLain = parseFloat($('#tunjangan_lain').val()) || 0;
-
-    const total = gajiPokok + uangMakan + uangTransport + tunjanganJabatan + tunjanganLain;
-    $('#total_gaji_display').val(formatRupiah(total));
-}
-
-function formatRupiah(value) {
-    return new Intl.NumberFormat('id-ID').format(value);
-}
 
 function tambahData() {
     isEditMode = false;
@@ -507,7 +478,6 @@ function tambahData() {
     $('#gaji_guru_id').val('');
     $('#guru_id').val('').trigger('change');
     $('#uang_makan, #uang_transport, #tunjangan_jabatan, #tunjangan_lain').val(0);
-    $('#total_gaji_display').val('0');
     clearValidation();
     $('#modalForm').modal('show');
 }
@@ -538,8 +508,6 @@ function editData(id) {
                 $('#tunjangan_jabatan').val(data.tunjangan_jabatan);
                 $('#tunjangan_lain').val(data.tunjangan_lain);
                 $('#status').val(data.status);
-
-                calculateTotalGaji();
 
                 $('#modalForm').modal('show');
             } else {
