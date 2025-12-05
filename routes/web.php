@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardSiswaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\Tenant\GajiGuruController;
 use App\Http\Controllers\Tenant\GuruController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
@@ -57,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('tagihan-manual/history', [TagihanManualController::class, 'history'])->name('tagihan-manual.history');
     Route::resource('tagihan-manual', TagihanManualController::class)->except(['create', 'edit']);
     Route::resource('rekening', RekeningController::class)->except(['create', 'edit']);
+    Route::resource('gaji-guru', GajiGuruController::class)->except(['create', 'edit']);
 
     // List Tagihan SPP
     Route::get('list-tagihan-spp', [ListTagihanSppController::class, 'index'])->name('list-tagihan-spp.index');
