@@ -103,19 +103,6 @@
     font-weight: 600;
     text-align: right;
 }
-.detail-total {
-    background-color: rgba(105, 108, 255, 0.1);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1rem;
-}
-.detail-total .detail-label {
-    font-size: 1rem;
-}
-.detail-total .detail-value {
-    font-size: 1.25rem;
-    color: #696cff;
-}
 </style>
 @endpush
 
@@ -142,7 +129,6 @@
                                 <th>TTL</th>
                                 <th>Tgl Bergabung</th>
                                 <th>Jenis Gaji</th>
-                                <th>Total Gaji</th>
                                 <th>Status</th>
                                 <th width="15%">Aksi</th>
                             </tr>
@@ -309,7 +295,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detail Gaji Guru</h5>
+                <h5 class="modal-title">Detail Master Gaji Guru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -344,7 +330,7 @@
                 </div>
 
                 <hr>
-                <h6 class="mb-3"><i class="bx bx-money me-1"></i> Rincian Gaji</h6>
+                <h6 class="mb-3"><i class="bx bx-money me-1"></i> Komponen Gaji</h6>
 
                 <div class="detail-row">
                     <span class="detail-label">Gaji Pokok</span>
@@ -365,13 +351,6 @@
                 <div class="detail-row">
                     <span class="detail-label">Tunjangan Lain</span>
                     <span class="detail-value" id="detail_tunjangan_lain">-</span>
-                </div>
-
-                <div class="detail-total">
-                    <div class="detail-row mb-0">
-                        <span class="detail-label">Total Gaji</span>
-                        <span class="detail-value" id="detail_total_gaji">-</span>
-                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -442,7 +421,6 @@ $(document).ready(function() {
             { data: 'ttl', name: 'tempat_lahir', orderable: false, searchable: false },
             { data: 'tanggal_bergabung_display', name: 'tanggal_bergabung', orderable: false, searchable: false },
             { data: 'jenis_gaji_badge', name: 'jenis_gaji', orderable: false, searchable: false },
-            { data: 'gaji_display', name: 'gaji_pokok', orderable: false, searchable: false },
             { data: 'status_badge', name: 'status', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false, width: '15%' }
         ],
@@ -555,7 +533,6 @@ function detailData(id) {
                 $('#detail_uang_transport').text(data.uang_transport_format);
                 $('#detail_tunjangan_jabatan').text(data.tunjangan_jabatan_format);
                 $('#detail_tunjangan_lain').text(data.tunjangan_lain_format);
-                $('#detail_total_gaji').text(data.total_gaji_format);
 
                 $('#modalDetail').modal('show');
             } else {

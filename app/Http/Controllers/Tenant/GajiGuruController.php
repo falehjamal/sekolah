@@ -79,12 +79,6 @@ class GajiGuruController extends Controller
             ->addColumn('jenis_gaji_badge', function (GajiGuru $row): string {
                 return $row->jenis_gaji_badge;
             })
-            ->addColumn('gaji_display', function (GajiGuru $row): string {
-                return '<div class="text-end">
-                    <div class="fw-semibold text-primary">' . $row->total_gaji_format . '</div>
-                    <small class="text-muted">Pokok: ' . $row->gaji_pokok_format . '</small>
-                </div>';
-            })
             ->addColumn('status_badge', function (GajiGuru $row): string {
                 return $row->status_badge;
             })
@@ -95,7 +89,7 @@ class GajiGuruController extends Controller
 
                 return $detailBtn . ' ' . $editBtn . ' ' . $deleteBtn;
             })
-            ->rawColumns(['guru_info', 'ttl', 'tanggal_bergabung_display', 'jenis_gaji_badge', 'gaji_display', 'status_badge', 'action'])
+            ->rawColumns(['guru_info', 'ttl', 'tanggal_bergabung_display', 'jenis_gaji_badge', 'status_badge', 'action'])
             ->make(true);
     }
 
