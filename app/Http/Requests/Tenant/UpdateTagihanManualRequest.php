@@ -29,7 +29,8 @@ class UpdateTagihanManualRequest extends FormRequest
         return [
             'siswa_id' => 'required|integer|exists:'.$siswaTable.',id',
             'bulan' => 'required|string|regex:/^\d{4}-\d{2}$/',
-            'nominal' => 'required|numeric|min:1',
+            'nominal' => 'required|numeric|min:0',
+            'diskon' => 'nullable|numeric|min:0',
             'tanggal_bayar' => 'required|date',
             'metode_pembayaran_id' => 'required|integer|exists:'.$metodeTable.',id',
             'rekening_id' => 'nullable|integer|exists:'.$rekeningTable.',id',
@@ -50,7 +51,9 @@ class UpdateTagihanManualRequest extends FormRequest
             'bulan.regex' => 'Format bulan tidak valid (gunakan YYYY-MM)',
             'nominal.required' => 'Nominal harus diisi',
             'nominal.numeric' => 'Nominal harus berupa angka',
-            'nominal.min' => 'Nominal harus lebih dari 0',
+            'nominal.min' => 'Nominal tidak boleh negatif',
+            'diskon.numeric' => 'Diskon harus berupa angka',
+            'diskon.min' => 'Diskon tidak boleh negatif',
             'tanggal_bayar.required' => 'Tanggal bayar harus diisi',
             'tanggal_bayar.date' => 'Format tanggal bayar tidak valid',
             'metode_pembayaran_id.required' => 'Metode pembayaran harus dipilih',
@@ -98,9 +101,11 @@ class UpdateTagihanManualRequest extends FormRequest
         $siswaId = $this->input('siswa_id');
         $bulan = $this->input('bulan');
         $nominal = (float) $this->input('nominal');
+        $diskon = (float) $this->input('diskon', 0);
+        $totalBayar = $nominal + $diskon;
         $tagihanId = $this->route('tagihan_manual')?->id;
 
-        if (!$siswaId || !$bulan || $nominal <= 0) {
+        if (!$siswaId || !$bulan || $totalBayar <= 0) {
             return;
         }
 
@@ -122,7 +127,9 @@ class UpdateTagihanManualRequest extends FormRequest
             $query->where('id', '!=', $tagihanId);
         }
 
-        $totalDibayar = (float) $query->sum('nominal');
+        $totalDibayar = (float) $query
+            ->selectRaw('COALESCE(SUM(nominal), 0) + COALESCE(SUM(diskon), 0) as total')
+            ->value('total');
 
         $sisaKekurangan = $nominalSpp - $totalDibayar;
 
@@ -131,8 +138,8 @@ class UpdateTagihanManualRequest extends FormRequest
             return;
         }
 
-        if ($nominal > $sisaKekurangan) {
-            $validator->errors()->add('nominal', 'Nominal pembayaran melebihi sisa kekurangan (Rp ' . number_format($sisaKekurangan, 0, ',', '.') . ')');
+        if ($totalBayar > $sisaKekurangan) {
+            $validator->errors()->add('nominal', 'Total pembayaran (nominal + diskon) melebihi sisa kekurangan (Rp ' . number_format($sisaKekurangan, 0, ',', '.') . ')');
         }
     }
 

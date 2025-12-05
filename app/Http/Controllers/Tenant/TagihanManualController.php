@@ -90,7 +90,7 @@ class TagihanManualController extends Controller
 
         $nominalSpp = (float) $siswa->spp->nominal;
 
-        // Hitung total yang sudah dibayar untuk bulan tersebut
+        // Hitung total yang sudah dibayar untuk bulan tersebut (nominal + diskon)
         $query = TagihanSpp::query()
             ->where('siswa_id', $siswaId)
             ->where('bulan', $bulan);
@@ -100,7 +100,13 @@ class TagihanManualController extends Controller
             $query->where('id', '!=', $tagihanId);
         }
 
-        $totalDibayar = (float) $query->sum('nominal');
+        $result = $query
+            ->selectRaw('COALESCE(SUM(nominal), 0) as total_nominal, COALESCE(SUM(diskon), 0) as total_diskon')
+            ->first();
+
+        $totalNominal = (float) ($result->total_nominal ?? 0);
+        $totalDiskon = (float) ($result->total_diskon ?? 0);
+        $totalDibayar = $totalNominal + $totalDiskon;
         $sisaKekurangan = $nominalSpp - $totalDibayar;
         $isLunas = $sisaKekurangan <= 0;
 
@@ -111,9 +117,13 @@ class TagihanManualController extends Controller
                 'spp_nama' => $siswa->spp->nama,
                 'nominal_spp' => $nominalSpp,
                 'nominal_spp_format' => 'Rp ' . number_format($nominalSpp, 0, ',', '.'),
+                'total_nominal' => $totalNominal,
+                'total_nominal_format' => 'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                'total_diskon' => $totalDiskon,
+                'total_diskon_format' => 'Rp ' . number_format($totalDiskon, 0, ',', '.'),
                 'total_dibayar' => $totalDibayar,
                 'total_dibayar_format' => 'Rp ' . number_format($totalDibayar, 0, ',', '.'),
-                'sisa_kekurangan' => $sisaKekurangan,
+                'sisa_kekurangan' => max(0, $sisaKekurangan),
                 'sisa_kekurangan_format' => 'Rp ' . number_format(max(0, $sisaKekurangan), 0, ',', '.'),
                 'is_lunas' => $isLunas,
             ],
@@ -151,6 +161,16 @@ class TagihanManualController extends Controller
             ->addColumn('nominal_format', function (TagihanSpp $row): string {
                 return '<span class="fw-semibold text-success">'.$row->nominal_format.'</span>';
             })
+            ->addColumn('diskon_format', function (TagihanSpp $row): string {
+                $diskon = (float) $row->diskon;
+                if ($diskon > 0) {
+                    return '<span class="fw-semibold text-info">'.$row->diskon_format.'</span>';
+                }
+                return '<span class="text-muted">-</span>';
+            })
+            ->addColumn('total_bayar_format', function (TagihanSpp $row): string {
+                return '<span class="fw-semibold text-primary">'.$row->total_bayar_format.'</span>';
+            })
             ->addColumn('tanggal_bayar_format', function (TagihanSpp $row): string {
                 return $row->tanggal_bayar
                     ? Carbon::parse($row->tanggal_bayar)->translatedFormat('d M Y')
@@ -178,7 +198,7 @@ class TagihanManualController extends Controller
 
                 return $editBtn.' '.$deleteBtn;
             })
-            ->rawColumns(['siswa_info', 'nominal_format', 'metode_badge', 'rekening_info', 'keterangan_text', 'action'])
+            ->rawColumns(['siswa_info', 'nominal_format', 'diskon_format', 'total_bayar_format', 'metode_badge', 'rekening_info', 'keterangan_text', 'action'])
             ->make(true);
     }
 
@@ -216,6 +236,10 @@ class TagihanManualController extends Controller
                 'bulan_format' => $item->bulan_format,
                 'nominal' => $item->nominal,
                 'nominal_format' => $item->nominal_format,
+                'diskon' => $item->diskon,
+                'diskon_format' => $item->diskon_format,
+                'total_bayar' => $item->total_bayar,
+                'total_bayar_format' => $item->total_bayar_format,
                 'tanggal_bayar' => $item->tanggal_bayar
                     ? Carbon::parse($item->tanggal_bayar)->format('Y-m-d')
                     : null,

@@ -29,7 +29,8 @@ class StoreTagihanManualRequest extends FormRequest
         return [
             'siswa_id' => 'required|integer|exists:'.$siswaTable.',id',
             'bulan' => 'required|string|regex:/^\d{4}-\d{2}$/',
-            'nominal' => 'required|numeric|min:1',
+            'nominal' => 'required|numeric|min:0',
+            'diskon' => 'nullable|numeric|min:0',
             'tanggal_bayar' => 'required|date',
             'metode_pembayaran_id' => 'required|integer|exists:'.$metodeTable.',id',
             'rekening_id' => 'nullable|integer|exists:'.$rekeningTable.',id',
@@ -50,7 +51,9 @@ class StoreTagihanManualRequest extends FormRequest
             'bulan.regex' => 'Format bulan tidak valid (gunakan YYYY-MM)',
             'nominal.required' => 'Nominal harus diisi',
             'nominal.numeric' => 'Nominal harus berupa angka',
-            'nominal.min' => 'Nominal harus lebih dari 0',
+            'nominal.min' => 'Nominal tidak boleh negatif',
+            'diskon.numeric' => 'Diskon harus berupa angka',
+            'diskon.min' => 'Diskon tidak boleh negatif',
             'tanggal_bayar.required' => 'Tanggal bayar harus diisi',
             'tanggal_bayar.date' => 'Format tanggal bayar tidak valid',
             'metode_pembayaran_id.required' => 'Metode pembayaran harus dipilih',
@@ -98,8 +101,10 @@ class StoreTagihanManualRequest extends FormRequest
         $siswaId = $this->input('siswa_id');
         $bulan = $this->input('bulan');
         $nominal = (float) $this->input('nominal');
+        $diskon = (float) $this->input('diskon', 0);
+        $totalBayar = $nominal + $diskon;
 
-        if (!$siswaId || !$bulan || $nominal <= 0) {
+        if (!$siswaId || !$bulan || $totalBayar <= 0) {
             return;
         }
 
@@ -112,11 +117,12 @@ class StoreTagihanManualRequest extends FormRequest
 
         $nominalSpp = (float) $siswa->spp->nominal;
 
-        // Hitung total yang sudah dibayar untuk bulan tersebut
+        // Hitung total yang sudah dibayar untuk bulan tersebut (nominal + diskon)
         $totalDibayar = (float) TagihanSpp::query()
             ->where('siswa_id', $siswaId)
             ->where('bulan', $bulan)
-            ->sum('nominal');
+            ->selectRaw('COALESCE(SUM(nominal), 0) + COALESCE(SUM(diskon), 0) as total')
+            ->value('total');
 
         $sisaKekurangan = $nominalSpp - $totalDibayar;
 
@@ -125,8 +131,8 @@ class StoreTagihanManualRequest extends FormRequest
             return;
         }
 
-        if ($nominal > $sisaKekurangan) {
-            $validator->errors()->add('nominal', 'Nominal pembayaran melebihi sisa kekurangan (Rp ' . number_format($sisaKekurangan, 0, ',', '.') . ')');
+        if ($totalBayar > $sisaKekurangan) {
+            $validator->errors()->add('nominal', 'Total pembayaran (nominal + diskon) melebihi sisa kekurangan (Rp ' . number_format($sisaKekurangan, 0, ',', '.') . ')');
         }
     }
 

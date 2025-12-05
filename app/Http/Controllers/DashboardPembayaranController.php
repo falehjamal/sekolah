@@ -66,9 +66,11 @@ class DashboardPembayaranController extends Controller
 
         foreach ($siswaAktif as $siswa) {
             $nominalSpp = $siswa->spp?->nominal ?? 0;
+
+            // Total dibayar = nominal + diskon
             $totalDibayar = $pembayaranBulanIni
                 ->where('siswa_id', $siswa->id)
-                ->sum('nominal');
+                ->sum(fn ($item) => (float) $item->nominal + (float) $item->diskon);
 
             if ($nominalSpp > 0 && $totalDibayar >= $nominalSpp) {
                 // Lunas
@@ -81,10 +83,10 @@ class DashboardPembayaranController extends Controller
             }
         }
 
-        // Pemasukan SPP bulan ini (total pembayaran bulan ini)
+        // Pemasukan SPP bulan ini (total nominal pembayaran, tidak termasuk diskon)
         $pemasukanSppBulanIni = $pembayaranBulanIni->sum('nominal');
 
-        // Pemasukan SPP hari ini
+        // Pemasukan SPP hari ini (nominal saja)
         $pemasukanSppHariIni = TagihanSpp::query()
             ->whereDate('tanggal_bayar', $hariIni)
             ->sum('nominal');

@@ -93,11 +93,16 @@ class ListTagihanSppController extends Controller
 
         // Prepare data with tagihan sum
         $data = $siswaData->map(function (Siswa $siswa) use ($bulanFormatted) {
-            // Hitung total tagihan yang sudah dibayar untuk bulan tersebut
-            $totalDibayar = TagihanSpp::query()
+            // Hitung total tagihan yang sudah dibayar untuk bulan tersebut (nominal + diskon)
+            $result = TagihanSpp::query()
                 ->where('siswa_id', $siswa->id)
                 ->where('bulan', $bulanFormatted)
-                ->sum('nominal');
+                ->selectRaw('COALESCE(SUM(nominal), 0) as total_nominal, COALESCE(SUM(diskon), 0) as total_diskon')
+                ->first();
+
+            $totalNominal = (float) ($result->total_nominal ?? 0);
+            $totalDiskon = (float) ($result->total_diskon ?? 0);
+            $totalDibayar = $totalNominal + $totalDiskon;
 
             $nominalSpp = $siswa->spp?->nominal ?? 0;
             $sisaTagihan = max(0, $nominalSpp - $totalDibayar);
@@ -111,6 +116,10 @@ class ListTagihanSppController extends Controller
                 'jurusan' => $siswa->jurusan?->nama_jurusan ?? '-',
                 'nominal_spp' => $nominalSpp,
                 'nominal_spp_format' => 'Rp ' . number_format($nominalSpp, 0, ',', '.'),
+                'total_nominal' => $totalNominal,
+                'total_nominal_format' => 'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                'total_diskon' => $totalDiskon,
+                'total_diskon_format' => 'Rp ' . number_format($totalDiskon, 0, ',', '.'),
                 'total_dibayar' => $totalDibayar,
                 'total_dibayar_format' => 'Rp ' . number_format($totalDibayar, 0, ',', '.'),
                 'sisa_tagihan' => $sisaTagihan,

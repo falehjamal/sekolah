@@ -18,6 +18,7 @@ class TagihanSpp extends Model
         'siswa_id',
         'bulan',
         'nominal',
+        'diskon',
         'tanggal_bayar',
         'metode_pembayaran_id',
         'rekening_id',
@@ -27,8 +28,27 @@ class TagihanSpp extends Model
 
     protected $casts = [
         'nominal' => 'decimal:2',
+        'diskon' => 'decimal:2',
         'tanggal_bayar' => 'date',
     ];
+
+    /**
+     * Get total bayar (nominal + diskon)
+     */
+    public function getTotalBayarAttribute(): float
+    {
+        return (float) $this->nominal + (float) $this->diskon;
+    }
+
+    public function getDiskonFormatAttribute(): string
+    {
+        return 'Rp ' . number_format((float) $this->diskon, 0, ',', '.');
+    }
+
+    public function getTotalBayarFormatAttribute(): string
+    {
+        return 'Rp ' . number_format($this->total_bayar, 0, ',', '.');
+    }
 
     public function siswa(): BelongsTo
     {

@@ -139,6 +139,8 @@
                                 <th>Siswa</th>
                                 <th>Bulan</th>
                                 <th>Nominal</th>
+                                <th>Diskon</th>
+                                <th>Total Bayar</th>
                                 <th>Tanggal Bayar</th>
                                 <th>Metode</th>
                                 <th>Rekening</th>
@@ -175,15 +177,19 @@
                             <strong>Informasi SPP</strong>
                         </div>
                         <div class="row g-2">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <small class="text-muted d-block">Total SPP</small>
                                 <span class="fw-semibold" id="infoNominalSpp">-</span>
                             </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Sudah Dibayar</small>
-                                <span class="fw-semibold text-success" id="infoTotalDibayar">-</span>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Nominal Dibayar</small>
+                                <span class="fw-semibold text-success" id="infoTotalNominal">-</span>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Total Diskon</small>
+                                <span class="fw-semibold text-info" id="infoTotalDiskon">-</span>
+                            </div>
+                            <div class="col-md-3">
                                 <small class="text-muted d-block">Sisa Kekurangan</small>
                                 <span class="fw-semibold text-warning" id="infoSisaKekurangan">-</span>
                             </div>
@@ -224,6 +230,24 @@
                                 <input type="number" class="form-control" id="nominal" name="nominal" placeholder="0" min="0" required>
                             </div>
                             <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="diskon" class="form-label">Diskon</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" id="diskon" name="diskon" placeholder="0" min="0" value="0">
+                            </div>
+                            <div class="invalid-feedback"></div>
+                            <small class="text-muted">Opsional. Potongan/keringanan biaya SPP.</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Pembayaran</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" class="form-control bg-light" id="total_pembayaran_display" readonly value="0">
+                            </div>
                             <small class="text-muted d-none" id="nominalHint">Maksimal: <span id="maxNominal">-</span></small>
                         </div>
                     </div>
@@ -285,9 +309,10 @@
                                         <th width="5%">No</th>
                                         <th>Bulan</th>
                                         <th>Nominal</th>
+                                        <th>Diskon</th>
+                                        <th>Total</th>
                                         <th>Tanggal Bayar</th>
                                         <th>Metode</th>
-                                        <th>Rekening</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -358,11 +383,12 @@ $(document).ready(function() {
             { data: 'no', width: '5%' },
             { data: 'bulan_format' },
             { data: 'nominal_format' },
+            { data: 'diskon_format' },
+            { data: 'total_bayar_format' },
             { data: 'tanggal_bayar_format' },
-            { data: 'metode' },
-            { data: 'rekening' }
+            { data: 'metode' }
         ],
-        order: [[3, 'desc']],
+        order: [[5, 'desc']],
         language: {
             processing: "Memuat...",
             zeroRecords: "Belum ada riwayat pembayaran",
@@ -391,6 +417,8 @@ $(document).ready(function() {
             { data: 'siswa_info', name: 'siswa.nama', orderable: true, searchable: true },
             { data: 'bulan_format', name: 'bulan', orderable: true, searchable: true },
             { data: 'nominal_format', name: 'nominal', orderable: true, searchable: false },
+            { data: 'diskon_format', name: 'diskon', orderable: true, searchable: false },
+            { data: 'total_bayar_format', name: 'total_bayar', orderable: false, searchable: false },
             { data: 'tanggal_bayar_format', name: 'tanggal_bayar', orderable: true, searchable: false },
             { data: 'metode_badge', name: 'metode_pembayaran_id', orderable: false, searchable: false },
             { data: 'rekening_info', name: 'rekening_id', orderable: false, searchable: false },
@@ -433,6 +461,11 @@ $(document).ready(function() {
     // Handle metode pembayaran change - toggle rekening visibility
     $('#metode_pembayaran_id').on('change', function() {
         toggleRekeningField();
+    });
+
+    // Update total pembayaran ketika nominal atau diskon berubah
+    $('#nominal, #diskon').on('input', function() {
+        updateTotalPembayaran();
     });
 });
 
@@ -512,9 +545,10 @@ function fetchHistory(siswaId, excludeId = null) {
                         no: no++,
                         bulan_format: item.bulan_format,
                         nominal_format: item.nominal_format,
+                        diskon_format: item.diskon_format || 'Rp 0',
+                        total_bayar_format: item.total_bayar_format,
                         tanggal_bayar_format: item.tanggal_bayar_format,
-                        metode: item.metode_nama || '-',
-                        rekening: item.rekening_info || '-'
+                        metode: item.metode_nama || '-'
                     });
                 });
 
@@ -551,15 +585,13 @@ function displaySppInfo(data) {
         $('#btnSimpan').prop('disabled', false);
 
         $('#infoNominalSpp').text(data.nominal_spp_format);
-        $('#infoTotalDibayar').text(data.total_dibayar_format);
+        $('#infoTotalNominal').text(data.total_nominal_format || 'Rp 0');
+        $('#infoTotalDiskon').text(data.total_diskon_format || 'Rp 0');
         $('#infoSisaKekurangan').text(data.sisa_kekurangan_format);
 
         // Update hint nominal
         $('#maxNominal').text(data.sisa_kekurangan_format);
         $('#nominalHint').removeClass('d-none');
-
-        // Set max value untuk input nominal
-        $('#nominal').attr('max', data.sisa_kekurangan);
     }
 }
 
@@ -568,7 +600,13 @@ function hideSppInfoPanels() {
     $('#lunasWarningPanel').addClass('d-none');
     $('#nominalHint').addClass('d-none');
     $('#btnSimpan').prop('disabled', false);
-    $('#nominal').removeAttr('max');
+}
+
+function updateTotalPembayaran() {
+    const nominal = parseFloat($('#nominal').val()) || 0;
+    const diskon = parseFloat($('#diskon').val()) || 0;
+    const total = nominal + diskon;
+    $('#total_pembayaran_display').val(total.toLocaleString('id-ID'));
 }
 
 function tambahData() {
@@ -580,6 +618,8 @@ function tambahData() {
     $('#metode_pembayaran_id').val('');
     $('#rekening_id').val('');
     $('#rekeningRow').hide();
+    $('#diskon').val(0);
+    $('#total_pembayaran_display').val('0');
 
     // Set default tanggal bayar ke hari ini
     const today = new Date().toISOString().split('T')[0];
@@ -614,10 +654,14 @@ function editData(id) {
                 $('#tagihan_id').val(data.id);
                 $('#bulan').val(data.bulan);
                 $('#nominal').val(data.nominal);
+                $('#diskon').val(data.diskon || 0);
                 $('#tanggal_bayar').val(data.tanggal_bayar);
                 $('#metode_pembayaran_id').val(data.metode_pembayaran_id ?? '');
                 $('#rekening_id').val(data.rekening_id ?? '');
                 $('#keterangan').val(data.keterangan);
+
+                // Update total pembayaran display
+                updateTotalPembayaran();
 
                 // Toggle rekening visibility based on metode
                 toggleRekeningField();
@@ -647,6 +691,8 @@ function simpanData() {
     const url = tagihanId ? "{{ url('tagihan-manual') }}/" + tagihanId : "{{ route('tagihan-manual.store') }}";
     const method = tagihanId ? 'PUT' : 'POST';
     const nominal = parseFloat($('#nominal').val()) || 0;
+    const diskon = parseFloat($('#diskon').val()) || 0;
+    const totalBayar = nominal + diskon;
 
     // Validasi client-side sebelum submit
     if (sppData) {
@@ -655,13 +701,13 @@ function simpanData() {
             return;
         }
 
-        if (nominal > sppData.sisa_kekurangan) {
-            showToast('error', 'Gagal', 'Nominal pembayaran melebihi sisa kekurangan (Rp ' + sppData.sisa_kekurangan.toLocaleString('id-ID') + ')');
+        if (totalBayar > sppData.sisa_kekurangan) {
+            showToast('error', 'Gagal', 'Total pembayaran (nominal + diskon) melebihi sisa kekurangan (Rp ' + sppData.sisa_kekurangan.toLocaleString('id-ID') + ')');
             return;
         }
 
-        if (nominal <= 0) {
-            showToast('error', 'Gagal', 'Nominal pembayaran harus lebih dari 0');
+        if (totalBayar <= 0) {
+            showToast('error', 'Gagal', 'Total pembayaran harus lebih dari 0');
             return;
         }
     }
@@ -670,6 +716,7 @@ function simpanData() {
         siswa_id: $('#siswa_id').val(),
         bulan: $('#bulan').val(),
         nominal: $('#nominal').val(),
+        diskon: $('#diskon').val() || 0,
         tanggal_bayar: $('#tanggal_bayar').val(),
         metode_pembayaran_id: $('#metode_pembayaran_id').val(),
         rekening_id: $('#rekening_id').val() || null,
