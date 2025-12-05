@@ -8,6 +8,17 @@
   data-assets-path="{{ asset('template/assets') }}/"
   data-template="vertical-menu-template-free"
 >
+<script>
+  // Apply saved theme immediately to prevent flash
+  (function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const html = document.documentElement;
+    if (savedTheme === 'dark') {
+      html.classList.remove('light-style');
+      html.classList.add('dark-style');
+    }
+  })();
+</script>
   <head>
     <meta charset="utf-8" />
     <meta
@@ -36,6 +47,9 @@
     <link rel="stylesheet" href="{{ asset('template/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/assets/vendor/css/pages/page-auth.css') }}" />
+
+    <!-- Dark Theme CSS -->
+    <link rel="stylesheet" href="{{ asset('css/dark-theme.css') }}" />
 
     <style>
       .avatar-initials {
@@ -83,6 +97,14 @@
             <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
 
               <ul class="navbar-nav flex-row align-items-center ms-auto">
+
+                <!-- Theme Switcher -->
+                <li class="nav-item me-2">
+                  <button type="button" class="theme-switcher" id="themeSwitcher" title="Ganti Tema">
+                    <i class="bx bx-moon"></i>
+                    <i class="bx bx-sun"></i>
+                  </button>
+                </li>
 
                 @php($layoutUser = $layoutUser ?? null)
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
@@ -182,6 +204,49 @@
     <script src="{{ asset('template/assets/js/main.js') }}"></script>
     <script src="{{ asset('template/assets/js/dashboards-analytics.js') }}"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <!-- Theme Switcher Script -->
+    <script>
+    (function() {
+      const themeSwitcher = document.getElementById('themeSwitcher');
+      const html = document.documentElement;
+
+      // Get current theme from localStorage or default to light
+      function getCurrentTheme() {
+        return localStorage.getItem('theme') || 'light';
+      }
+
+      // Apply theme
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          html.classList.remove('light-style');
+          html.classList.add('dark-style');
+        } else {
+          html.classList.remove('dark-style');
+          html.classList.add('light-style');
+        }
+        localStorage.setItem('theme', theme);
+      }
+
+      // Toggle theme
+      function toggleTheme() {
+        const currentTheme = getCurrentTheme();
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        applyTheme(newTheme);
+      }
+
+      // Event listener for button
+      if (themeSwitcher) {
+        themeSwitcher.addEventListener('click', toggleTheme);
+      }
+
+      // Check system preference on first visit
+      if (!localStorage.getItem('theme')) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light');
+      }
+    })();
+    </script>
 
     @stack('scripts')
   </body>

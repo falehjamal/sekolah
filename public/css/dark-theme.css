@@ -1,0 +1,656 @@
+/**
+ * Dark Theme CSS for Sneat Bootstrap Admin Template
+ * Custom dark mode implementation
+ */
+
+/* ============================================
+   CSS Variables for Dark Mode
+   ============================================ */
+.dark-style {
+  --bs-body-bg: #232333;
+  --bs-body-color: #a3a4cc;
+  --bs-card-bg: #2b2c40;
+  --bs-border-color: #434968;
+  --bs-heading-color: #cfd3ec;
+  --bs-link-color: #696cff;
+  --bs-secondary-bg: #232333;
+  --sneat-dark-bg: #232333;
+  --sneat-card-bg: #2b2c40;
+  --sneat-sidebar-bg: #2b2c40;
+  --sneat-navbar-bg: #2b2c40;
+  --sneat-text-primary: #cfd3ec;
+  --sneat-text-secondary: #a3a4cc;
+  --sneat-text-muted: #7c7e97;
+  --sneat-border-color: #434968;
+  --sneat-input-bg: #2b2c40;
+  --sneat-input-border: #434968;
+  --sneat-table-striped-bg: rgba(134, 146, 208, 0.04);
+  --sneat-hover-bg: rgba(134, 146, 208, 0.08);
+}
+
+/* ============================================
+   Body & Background
+   ============================================ */
+.dark-style body {
+  background-color: var(--sneat-dark-bg) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .bg-body {
+  background-color: var(--sneat-dark-bg) !important;
+}
+
+/* ============================================
+   Layout & Containers
+   ============================================ */
+.dark-style .layout-wrapper,
+.dark-style .layout-container {
+  background-color: var(--sneat-dark-bg) !important;
+}
+
+.dark-style .content-wrapper {
+  background-color: var(--sneat-dark-bg) !important;
+}
+
+.dark-style .container-xxl {
+  background-color: transparent !important;
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.dark-style .card {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-style .card-header,
+.dark-style .card-body,
+.dark-style .card-footer {
+  background-color: transparent !important;
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .card-title,
+.dark-style .card-header h5,
+.dark-style .card-header h6 {
+  color: var(--sneat-text-primary) !important;
+}
+
+/* ============================================
+   Sidebar / Menu
+   ============================================ */
+.dark-style .menu,
+.dark-style .bg-menu-theme {
+  background-color: var(--sneat-sidebar-bg) !important;
+}
+
+.dark-style .menu-inner {
+  background-color: var(--sneat-sidebar-bg) !important;
+}
+
+.dark-style .menu-item .menu-link {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .menu-item .menu-link:hover,
+.dark-style .menu-item.active > .menu-link {
+  background-color: var(--sneat-hover-bg) !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .menu-item.active > .menu-link {
+  color: #696cff !important;
+}
+
+.dark-style .menu-header {
+  color: var(--sneat-text-muted) !important;
+}
+
+.dark-style .menu-sub {
+  background-color: transparent !important;
+}
+
+.dark-style .app-brand .app-brand-text {
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .menu-inner-shadow {
+  background: linear-gradient(var(--sneat-sidebar-bg) 41%, rgba(43, 44, 64, 0.11) 95%, rgba(43, 44, 64, 0)) !important;
+}
+
+/* ============================================
+   Navbar
+   ============================================ */
+.dark-style .layout-navbar,
+.dark-style .bg-navbar-theme {
+  background-color: var(--sneat-navbar-bg) !important;
+  box-shadow: 0 1px 0 var(--sneat-border-color) !important;
+}
+
+.dark-style .navbar-nav .nav-link {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .navbar-nav .nav-link:hover {
+  color: var(--sneat-text-primary) !important;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.dark-style .content-footer,
+.dark-style .bg-footer-theme {
+  background-color: var(--sneat-card-bg) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .footer-link {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .footer-link:hover {
+  color: var(--sneat-text-primary) !important;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+.dark-style h1, .dark-style h2, .dark-style h3,
+.dark-style h4, .dark-style h5, .dark-style h6,
+.dark-style .h1, .dark-style .h2, .dark-style .h3,
+.dark-style .h4, .dark-style .h5, .dark-style .h6 {
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style p,
+.dark-style span:not(.badge):not([class*="text-"]),
+.dark-style label {
+  color: var(--sneat-text-secondary);
+}
+
+.dark-style .text-muted {
+  color: var(--sneat-text-muted) !important;
+}
+
+.dark-style .text-body {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style a:not(.btn):not(.badge):not(.nav-link):not(.dropdown-item):not(.page-link) {
+  color: #696cff;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+.dark-style .table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: var(--sneat-table-striped-bg);
+  --bs-table-hover-bg: var(--sneat-hover-bg);
+  color: var(--sneat-text-secondary) !important;
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .table th {
+  color: var(--sneat-text-primary) !important;
+  border-color: var(--sneat-border-color) !important;
+  background-color: rgba(134, 146, 208, 0.06) !important;
+}
+
+.dark-style .table td {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: var(--sneat-table-striped-bg) !important;
+}
+
+.dark-style .table-hover > tbody > tr:hover > * {
+  background-color: var(--sneat-hover-bg) !important;
+}
+
+.dark-style .table-bordered {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .table-bordered th,
+.dark-style .table-bordered td {
+  border-color: var(--sneat-border-color) !important;
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.dark-style .form-control,
+.dark-style .form-select {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .form-control:focus,
+.dark-style .form-select:focus {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: #696cff !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .form-control::placeholder {
+  color: var(--sneat-text-muted) !important;
+}
+
+.dark-style .form-label {
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .input-group-text {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .form-check-input {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+}
+
+.dark-style .form-check-input:checked {
+  background-color: #696cff !important;
+  border-color: #696cff !important;
+}
+
+/* ============================================
+   Select2 (Dark Mode)
+   ============================================ */
+.dark-style .select2-container--bootstrap4 .select2-selection {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .select2-container--bootstrap4 .select2-selection__rendered {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .select2-container--bootstrap4 .select2-dropdown {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+}
+
+.dark-style .select2-container--bootstrap4 .select2-results__option {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .select2-container--bootstrap4 .select2-results__option--highlighted {
+  background-color: #696cff !important;
+  color: #fff !important;
+}
+
+.dark-style .select2-container--bootstrap4 .select2-search__field {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+/* ============================================
+   Modals
+   ============================================ */
+.dark-style .modal-content {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .modal-header {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .modal-footer {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .modal-title {
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ============================================
+   Dropdowns
+   ============================================ */
+.dark-style .dropdown-menu {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-style .dropdown-item {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .dropdown-item:hover,
+.dark-style .dropdown-item:focus {
+  background-color: var(--sneat-hover-bg) !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .dropdown-divider {
+  border-color: var(--sneat-border-color) !important;
+}
+
+/* ============================================
+   Alerts
+   ============================================ */
+.dark-style .alert {
+  border-color: var(--sneat-border-color);
+}
+
+.dark-style .alert-info {
+  background-color: rgba(3, 195, 236, 0.15) !important;
+  color: #03c3ec !important;
+}
+
+.dark-style .alert-warning {
+  background-color: rgba(255, 171, 0, 0.15) !important;
+  color: #ffab00 !important;
+}
+
+.dark-style .alert-danger {
+  background-color: rgba(255, 62, 29, 0.15) !important;
+  color: #ff3e1d !important;
+}
+
+.dark-style .alert-success {
+  background-color: rgba(113, 221, 55, 0.15) !important;
+  color: #71dd37 !important;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+.dark-style .bg-label-primary {
+  background-color: rgba(105, 108, 255, 0.16) !important;
+  color: #696cff !important;
+}
+
+.dark-style .bg-label-secondary {
+  background-color: rgba(133, 146, 163, 0.16) !important;
+  color: #8592a3 !important;
+}
+
+.dark-style .bg-label-success {
+  background-color: rgba(113, 221, 55, 0.16) !important;
+  color: #71dd37 !important;
+}
+
+.dark-style .bg-label-danger {
+  background-color: rgba(255, 62, 29, 0.16) !important;
+  color: #ff3e1d !important;
+}
+
+.dark-style .bg-label-warning {
+  background-color: rgba(255, 171, 0, 0.16) !important;
+  color: #ffab00 !important;
+}
+
+.dark-style .bg-label-info {
+  background-color: rgba(3, 195, 236, 0.16) !important;
+  color: #03c3ec !important;
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+.dark-style .page-link {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .page-link:hover {
+  background-color: var(--sneat-hover-bg) !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .page-item.active .page-link {
+  background-color: #696cff !important;
+  border-color: #696cff !important;
+  color: #fff !important;
+}
+
+.dark-style .page-item.disabled .page-link {
+  background-color: var(--sneat-card-bg) !important;
+  color: var(--sneat-text-muted) !important;
+}
+
+/* ============================================
+   DataTables
+   ============================================ */
+.dark-style .dataTables_wrapper .dataTables_length select,
+.dark-style .dataTables_wrapper .dataTables_filter input {
+  background-color: var(--sneat-input-bg) !important;
+  border-color: var(--sneat-input-border) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .dataTables_wrapper .dataTables_info {
+  color: var(--sneat-text-muted) !important;
+}
+
+.dark-style .dataTables_wrapper .dataTables_paginate .paginate_button {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background-color: var(--sneat-hover-bg) !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #696cff !important;
+  color: #fff !important;
+}
+
+/* ============================================
+   Toasts
+   ============================================ */
+.dark-style .toast {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .toast-header {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .toast-body {
+  color: var(--sneat-text-secondary) !important;
+}
+
+/* ============================================
+   Progress Bars
+   ============================================ */
+.dark-style .progress {
+  background-color: var(--sneat-border-color) !important;
+}
+
+/* ============================================
+   Code
+   ============================================ */
+.dark-style code {
+  background-color: rgba(105, 108, 255, 0.15) !important;
+  color: #696cff !important;
+}
+
+.dark-style pre {
+  background-color: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+.dark-style ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-style ::-webkit-scrollbar-track {
+  background: var(--sneat-dark-bg);
+}
+
+.dark-style ::-webkit-scrollbar-thumb {
+  background: var(--sneat-border-color);
+  border-radius: 4px;
+}
+
+.dark-style ::-webkit-scrollbar-thumb:hover {
+  background: #5a5d7a;
+}
+
+/* ============================================
+   Theme Switcher Button
+   ============================================ */
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-switcher:hover {
+  background-color: rgba(105, 108, 255, 0.1);
+}
+
+.theme-switcher i {
+  font-size: 1.375rem;
+  color: #697a8d;
+  transition: all 0.2s ease;
+}
+
+.dark-style .theme-switcher i {
+  color: #a3a4cc;
+}
+
+.theme-switcher:hover i {
+  color: #696cff;
+}
+
+/* Icon visibility based on theme */
+.light-style .theme-switcher .bx-moon {
+  display: inline-block;
+}
+
+.light-style .theme-switcher .bx-sun {
+  display: none;
+}
+
+.dark-style .theme-switcher .bx-moon {
+  display: none;
+}
+
+.dark-style .theme-switcher .bx-sun {
+  display: inline-block;
+}
+
+/* ============================================
+   ApexCharts Dark Mode
+   ============================================ */
+.dark-style .apexcharts-canvas {
+  background: transparent !important;
+}
+
+.dark-style .apexcharts-text,
+.dark-style .apexcharts-xaxis-label,
+.dark-style .apexcharts-yaxis-label {
+  fill: var(--sneat-text-muted) !important;
+}
+
+.dark-style .apexcharts-gridline {
+  stroke: var(--sneat-border-color) !important;
+}
+
+.dark-style .apexcharts-legend-text {
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .apexcharts-tooltip {
+  background: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+  color: var(--sneat-text-secondary) !important;
+}
+
+.dark-style .apexcharts-tooltip-title {
+  background: var(--sneat-card-bg) !important;
+  border-color: var(--sneat-border-color) !important;
+}
+
+/* ============================================
+   Custom Table Card (Dark Mode)
+   ============================================ */
+.dark-style .table-card__title {
+  color: var(--sneat-text-primary) !important;
+}
+
+.dark-style .table-meta li span {
+  color: var(--sneat-text-muted) !important;
+}
+
+.dark-style .table-avatar {
+  background: linear-gradient(135deg, #696cff, #9921e8);
+}
+
+/* ============================================
+   Perfect Scrollbar
+   ============================================ */
+.dark-style .ps__thumb-y {
+  background-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .ps__rail-y:hover > .ps__thumb-y,
+.dark-style .ps__rail-y:focus > .ps__thumb-y,
+.dark-style .ps__rail-y.ps--clicking .ps__thumb-y {
+  background-color: #5a5d7a !important;
+}
+
+/* ============================================
+   Misc
+   ============================================ */
+.dark-style .layout-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark-style .divider .divider-text {
+  background-color: var(--sneat-card-bg) !important;
+}
+
+.dark-style hr {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .border {
+  border-color: var(--sneat-border-color) !important;
+}
+
+.dark-style .shadow,
+.dark-style .shadow-sm,
+.dark-style .shadow-lg {
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Loading Overlay */
+.dark-style #loadingOverlay {
+  background: rgba(35, 35, 51, 0.8) !important;
+}
