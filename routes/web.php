@@ -8,6 +8,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Tenant\CutiGuruController;
 use App\Http\Controllers\Tenant\GajiGuruController;
 use App\Http\Controllers\Tenant\GuruController;
+use App\Http\Controllers\Tenant\PemotonganGuruController;
 use App\Http\Controllers\Tenant\TunjanganGuruController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
@@ -65,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::post('cuti/{cuti}/approve', [CutiGuruController::class, 'approve'])->name('cuti.approve');
     Route::post('cuti/{cuti}/reject', [CutiGuruController::class, 'reject'])->name('cuti.reject');
     Route::resource('cuti', CutiGuruController::class)->except(['create', 'edit']);
+    Route::resource('pemotongan', PemotonganGuruController::class)->except(['create', 'edit']);
     Route::resource('tunjangan', TunjanganGuruController::class)->except(['create', 'edit']);
 
     // List Tagihan SPP
