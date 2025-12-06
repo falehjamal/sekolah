@@ -42,6 +42,31 @@ class GuruController extends Controller
         ]);
     }
 
+    public function search(Request $request): JsonResponse
+    {
+        $term = $request->input('term', '');
+
+        $guru = Guru::query()
+            ->where(function($query) use ($term) {
+                $query->where('nama', 'like', "%{$term}%")
+                      ->orWhere('nip', 'like', "%{$term}%");
+            })
+            ->orderBy('nama')
+            ->limit(10)
+            ->get(['id', 'nama', 'nip']);
+
+        $results = $guru->map(function($item) {
+            return [
+                'id' => $item->id,
+                'text' => $item->nama . ($item->nip ? ' (' . $item->nip . ')' : '')
+            ];
+        });
+
+        return response()->json([
+            'results' => $results
+        ]);
+    }
+
     public function datatable(): JsonResponse
     {
         $guru = Guru::query()->with('user');

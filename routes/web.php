@@ -5,8 +5,10 @@ use App\Http\Controllers\DashboardSiswaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LevelUserController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\Tenant\CutiGuruController;
 use App\Http\Controllers\Tenant\GajiGuruController;
 use App\Http\Controllers\Tenant\GuruController;
+use App\Http\Controllers\Tenant\TunjanganGuruController;
 use App\Http\Controllers\Tenant\JurusanController;
 use App\Http\Controllers\Tenant\KelasController;
 use App\Http\Controllers\Tenant\ListTagihanSppController;
@@ -50,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('orangtua', OrangtuaController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('spp', SppController::class);
+    Route::get('guru/search', [GuruController::class, 'search'])->name('guru.search');
     Route::get('guru/{guru}/detail', [GuruController::class, 'detail'])->name('guru.detail');
     Route::resource('guru', GuruController::class);
     Route::get('siswa/{siswa}/detail', [SiswaController::class, 'detail'])->name('siswa.detail');
@@ -59,6 +62,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('tagihan-manual', TagihanManualController::class)->except(['create', 'edit']);
     Route::resource('rekening', RekeningController::class)->except(['create', 'edit']);
     Route::resource('gaji-guru', GajiGuruController::class)->except(['create', 'edit']);
+    Route::post('cuti/{cuti}/approve', [CutiGuruController::class, 'approve'])->name('cuti.approve');
+    Route::post('cuti/{cuti}/reject', [CutiGuruController::class, 'reject'])->name('cuti.reject');
+    Route::resource('cuti', CutiGuruController::class)->except(['create', 'edit']);
+    Route::resource('tunjangan', TunjanganGuruController::class)->except(['create', 'edit']);
 
     // List Tagihan SPP
     Route::get('list-tagihan-spp', [ListTagihanSppController::class, 'index'])->name('list-tagihan-spp.index');
